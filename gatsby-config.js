@@ -6,12 +6,7 @@ module.exports = {
     title: `Dale Tristan Hutchinson`,
     siteUrl: `https://daletristanhutchinson.com`
   },
-  plugins: [{
-    resolve: 'gatsby-source-wordpress',
-    options: {
-      "url": "http://192.168.64.2/wp-dev/graphql"
-    }
-  }, 
+  plugins: [
   "gatsby-plugin-image", 
   "gatsby-plugin-sharp", 
   "gatsby-transformer-sharp", 

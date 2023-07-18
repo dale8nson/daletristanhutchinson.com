@@ -11,7 +11,8 @@
     "start": "gatsby develop",
     "build": "gatsby build",
     "serve": "gatsby serve",
-    "clean": "gatsby clean"
+    "clean": "gatsby clean",
+    "deploy": "gatsby build --prefix-paths && gh-pages -d public"
   },
   "dependencies": {
     "@babel/plugin-transform-typescript": "^7.22.5",
@@ -39,6 +40,7 @@
   "devDependencies": {
     "@types/react": "^18.2.14",
     "gatsby-plugin-typescript": "^5.11.0",
+    "gh-pages": "^5.0.0",
     "typescript": "^5.1.6"
   }
 }
