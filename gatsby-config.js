@@ -6,6 +6,7 @@ module.exports = {
     title: `Dale Tristan Hutchinson`,
     siteUrl: `https://daletristanhutchinson.com`
   },
+  pathPrefix: "/daletristanhutchinson.com",
   plugins: [
   "gatsby-plugin-image", 
   "gatsby-plugin-sharp", 
