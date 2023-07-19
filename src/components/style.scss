@@ -3,6 +3,11 @@
 @forward './scss/_brand.scss';
 @forward './scss/_footer.scss';
 
+@font-face {
+  font-family: "Lemon Tuesday";
+  src: url("../assets/fonts/Lemon Tuesday.otf");
+}
+
 
   * {
     box-sizing: border-box;

@@ -1,0 +1,47 @@
+$start-width:27%;
+$shrink-width: 18%;
+$end-width: 6%;
+
+@function center-position ($width) {
+
+ @return calc(50% - ($width/2));
+
+}
+
+.deiru {
+  position: relative;
+  overflow:visible;
+  z-index:10;
+  width: $end-width;
+  left: 0%;
+  transition: all  ease-in-ease-out;
+  animation-name: entry;
+  animation-duration: 4s;
+}
+
+
+@keyframes entry {
+  0% {
+    width: $start-width;
+    left:center-position($start-width);
+    top: 25%;
+    opacity: 0%;
+  }
+  25% {
+    width:$shrink-width;
+    top: 10%;
+    left:center-position($shrink-width);
+    opacity: 100%;
+  }
+  75% {
+    top:10%;
+    width:$shrink-width;
+    left:center-position($shrink-width);
+  }
+  100% {
+    width:$end-width;
+    left:0%;
+    top: 0%;
+    
+  }
+}

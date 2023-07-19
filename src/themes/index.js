@@ -1,4 +1,4 @@
 import dThTheme from  './dth';
-import Home from './home';
+import home from './home';
 
-export { dThTheme, Home };
+export { dThTheme, home };

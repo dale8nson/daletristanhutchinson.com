@@ -1,5 +1,6 @@
 import * as React from 'react';
 import  DeiruLogo  from '../images/deiru-logo.svg';
+import './scss/_deiru.scss';
 
 const DEBUG = false;
 
@@ -8,15 +9,9 @@ DEBUG && console.log(`Logo: ${DeiruLogo}`);
 
 const Deiru = () => {
 
-  const style = {
-    position: 'relative',
-    width:'3%',
-    overflow:'visible',
-    zIndex:10
-  }
   
   return (
-    <div style={style}>
+    <div className='deiru'>
       <DeiruLogo/>
     </div>
   );
