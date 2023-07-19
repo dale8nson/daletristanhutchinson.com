@@ -1,8 +1,8 @@
 {
-  "name": "organiser",
+  "name": "dale-tristan-hutchinson",
   "version": "1.0.0",
   "private": true,
-  "description": "organiser",
+  "description": "Personal Portfolio Site",
   "keywords": [
     "gatsby"
   ],
@@ -15,7 +15,9 @@
     "deploy": "gatsby build --prefix-paths && gh-pages -d public"
   },
   "dependencies": {
+    "@babel/plugin-transform-react-jsx": "^7.22.5",
     "@babel/plugin-transform-typescript": "^7.22.5",
+    "@babel/preset-react": "^7.22.5",
     "@emotion/react": "^11.11.1",
     "@fluentui/react": "^8.110.7",
     "@fluentui/react-components": "^9.25.1",
@@ -27,11 +29,11 @@
     "gatsby-plugin-react-svg": "^3.3.0",
     "gatsby-plugin-sass": "^6.11.0",
     "gatsby-plugin-sharp": "^5.11.0",
-    "gatsby-plugin-theme-ui": "^0.16.0",
     "gatsby-source-filesystem": "^5.11.0",
     "gatsby-source-wordpress": "^7.11.0",
     "gatsby-transformer-sharp": "^5.11.0",
     "html-react-parser": "^4.0.0",
+    "install": "^0.13.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sass": "^1.63.6",

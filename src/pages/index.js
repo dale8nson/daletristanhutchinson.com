@@ -1,11 +1,13 @@
-import * as React from 'react';
+/** @jsxImportSource theme-ui */
+// import * as React from 'react';
 import { Seo, Deiru, Layout } from '../components';
+import { home } from '../themes';
 import { Link } from 'gatsby';
 import './scss/_index.scss';
-
+import { ThemeUIProvider } from 'theme-ui';
 const IndexPage =  () => {
   return (
-    <div style={{height:'100%', backgroundColor:'#000'}}>
+    <ThemeUIProvider theme={ home }>
     <Layout header>
       <Layout.Header>
       <Deiru/>
@@ -22,7 +24,7 @@ const IndexPage =  () => {
         </nav>
       </Layout.MainContent>
     </Layout>
-    </div>
+    </ThemeUIProvider>
   )
 };
 

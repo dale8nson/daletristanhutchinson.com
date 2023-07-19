@@ -6,7 +6,9 @@ module.exports = {
     title: `Dale Tristan Hutchinson`,
     siteUrl: `https://daletristanhutchinson.com`
   },
-  pathPrefix: "/daletristanhutchinson.com",
+  pathPrefix: "/",
+  jsxRuntime: "automatic",
+  jsxImportSource: "@emotion/react",
   plugins: [
   "gatsby-plugin-image", 
   "gatsby-plugin-sharp", 
@@ -14,7 +16,6 @@ module.exports = {
   "gatsby-plugin-sass", 
   "gatsby-plugin-mdx", 
   "gatsby-plugin-typescript",
-  "gatsby-plugin-theme-ui",
   {
     resolve: 'gatsby-source-filesystem',
     options: {

@@ -5,6 +5,7 @@ import { TreeItem, Tree } from '@fluentui/react-components/unstable';
 import { Notes, Library, Articles, Site, Layout } from './index.js';
 
 import { dThTheme } from '../themes';
+import './scss/_admin-layout.scss';
 const DEBUG = false;
 DEBUG && console.log(`admin-layout.js: Layout: \n${Object.entries(Layout).map(entry => entry.join(':\t')).join('\n')}`);
 
@@ -16,7 +17,7 @@ const  AdminLayout = (props) => {
   }; 
   return (
     <FluentProvider theme={dThTheme.lightTheme}>
-      <Layout header={true} leftSidebar={true} rightSidebar={true} footer={true}>
+      <Layout className='admin-layout' header={true} leftSidebar={true} rightSidebar={true} footer={true}>
         <Layout.Header>
           <Layout.Header.Brand name={(<><strong>O</strong>ffice<strong>M</strong>ate</>)}/>
           <TabList size='large' onTabSelect={onTabSelect}>
