@@ -7,7 +7,7 @@ const home: Theme = {
     monospace: 'Menlo, monospace',
   },
   colors: {
-    text: '#000',
+    text: '#ee0000ff',
     background: '#000',
     primary: '#33e',
   },

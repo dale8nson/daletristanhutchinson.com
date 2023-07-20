@@ -1,6 +1,9 @@
 $start-width:27%;
+$start-height: 90dvh;
+$end-height: 10%;
 $shrink-width: 18%;
 $end-width: 6%;
+$left-position: auto;
 
 @function center-position ($width) {
 
@@ -13,6 +16,7 @@ $end-width: 6%;
   overflow:visible;
   z-index:10;
   width: $end-width;
+  height: $end-height;
   left: 0%;
   transition: all  ease-in-ease-out;
   animation-name: entry;
@@ -23,6 +27,7 @@ $end-width: 6%;
 @keyframes entry {
   0% {
     width: $start-width;
+    height: $start-height;
     left:center-position($start-width);
     top: 25%;
     opacity: 0%;
@@ -30,13 +35,14 @@ $end-width: 6%;
   25% {
     width:$shrink-width;
     top: 10%;
-    left:center-position($shrink-width);
-    opacity: 100%;
+    left:$left-position;
+    opacity: 50%;
   }
   75% {
     top:10%;
     width:$shrink-width;
-    left:center-position($shrink-width);
+    left:$left-position;
+    opacity:100%;
   }
   100% {
     width:$end-width;

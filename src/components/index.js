@@ -7,6 +7,8 @@ import Seo from './seo';
 import Layout from './layout';
 import AdminLayout from './admin-layout';
 import Deiru from './deiru';
+import Char from './char';
+import CharacterString from './character-string';
 
 
 export {
@@ -18,5 +20,7 @@ export {
   Site,
   AdminLayout,
   Seo,
-  Deiru
+  Deiru,
+  Char,
+  CharacterString
 };

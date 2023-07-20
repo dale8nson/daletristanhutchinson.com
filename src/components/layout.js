@@ -3,9 +3,6 @@ import {LargeTitle} from '@fluentui/react-components';
 import { alt } from '../utils';
 import Brand from './index.js';
 // import './scss/_layout.scss';
-// import './scss/_header.scss';
-// import './scss/_footer.scss';
-// import './scss/_brand.scss';
 
 const DEBUG = true;
 const Layout = (props) => {
@@ -15,7 +12,6 @@ const Layout = (props) => {
   DEBUG && console.log(`header: ${header} leftSidebar: ${leftSidebar} rightSidebar: ${rightSidebar} footer: ${footer}`);
   DEBUG && console.log(`children: ${children}`);
   const style = {
-    display: 'grid',
     gridTemplateColumns: `minmax(max-content,15%) 1fr minmax(max-content,15%)`,
     gridTemplateRows: `minmax(max-content, 15%) 1fr minmax(max-content, 15%)`,
     // gridTemplateAreas: `"${alt`header/left-sidebar/!main-content,header/!main-content,header/right-sidebar/!main-content`}" "${alt`left-sidebar/!main-content, !main-content,right-sidebar/!main-content`}"
@@ -35,7 +31,7 @@ const Layout = (props) => {
 
 Layout.Header = ({className, children}) => (
 
-  <div className={`header ${className}`} style={{gridArea:'header', position:'relative', margin:'1%', zIndex:'5', overflow:'visible'}}>
+  <div className={`header ${className}`} style={{gridArea:'header', position:'relative', display: 'flex', margin:'1%', zIndex:'5', overflow:'visible'}}>
     {children}
   </div>
 
