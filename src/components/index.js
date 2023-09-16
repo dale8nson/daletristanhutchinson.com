@@ -9,6 +9,12 @@ import AdminLayout from './admin-layout';
 import Deiru from './deiru';
 import Char from './char';
 import CharacterString from './character-string';
+import Container from './container';
+// import DaleTristanHutchinson from './dale-tristan-hutchinson';
+import ParallaxImage from './parallax-image';
+import Zen3D from './zen-3d';
+import DaleTristanHutchinson from './dth-svg';
+import GLHeader from './gl-header';
 
 
 export {
@@ -22,5 +28,10 @@ export {
   Seo,
   Deiru,
   Char,
-  CharacterString
+  CharacterString,
+  Container,
+  DaleTristanHutchinson,
+  ParallaxImage,
+  Zen3D,
+  GLHeader
 };

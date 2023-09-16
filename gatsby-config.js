@@ -36,13 +36,12 @@ module.exports = {
       "name": "articles",
       "path": "./articles/"
     }
-  
-},
+  },
 {
   resolve: "gatsby-plugin-react-svg",
   options: {
     rule: {
-      include: /images\/.*[.]svg$/
+      include: /images\/.*[.]svg$/,
     }
   }
 }]

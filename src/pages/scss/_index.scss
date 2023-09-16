@@ -1,13 +1,759 @@
+$opening-animation-duration:10s;
+$entrance-animation-duration:15s;
+$swing-animation-duration: 45s;
+$television-width: 80vw;
+$television-height-rate: 0.6;
+$television-height: calc($television-height-rate * $television-width);
+$television-margin: calc((100vw - $television-width) / 2);
+$cinema-width: 100vw;
+// $cinema-screen-height-rate: 0.4255;
+$cinema-screen-height-rate: 0.25;
+
+$cinema-height: calc($cinema-screen-height-rate * $cinema-width);
+$cinema-margin: calc((100vw - $cinema-width) / 2);
+
+// $cover-height: max($television-height,$cinema-height);
+$cover-height: 15vw;
+$television-width-clip: $television-margin;
+$television-height-clip:calc($television-height - $cover-height);
+$cinema-width-clip: calc((100vw - $cinema-width) / 2);
+$cinema-height-clip: calc($cover-height - $cinema-height);
+
 body {
   background: #000;
 }
-
-.index {
-  & nav {
-    & ul {
-      & li {
-        list-style-type: none;
+    nav {
+      & ul {
+        & li {
+          list-style-type: none;
+        }
       }
     }
+
+.header {
+  display: flex;
+  position:relative;
+  align-items:flex-start;
+  justify-items: center;
+  overflow-y:visible;
+  overflow-x: hidden;
+  z-index: 20;
+  height: $cover-height;
+}
+
+.dth {
+  position:relative;
+  // z-index:7;
+  transform: scale(0.5) translateZ(0);
+  // top:0;
+  width:100%;
+  height: 100%;
+  animation-name: dth-entrance;
+  animation-play-state: paused;
+  animation-duration: $opening-animation-duration;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  overflow-x: clip;
+  overflow-y: visible;
+  z-index: 3;
+
+  // mix-blend-mode:luminosity;
+  // filter:url(#invert);
+  
+  
+
+  // & .swing {
+  //   animation: dth-swing $swing-animation-duration ease-in-out infinite alternate both;
+  // }
+  
+  & svg {
+      // filter:url(#invert);
+      position: relative;
+      width: 100%;
+      height: 100%;
+      // transform:translateY(50vh);
+      // animation-name: dth-svg-entrance;
+      // animation-play-state: paused;
+      // animation-duration: $opening-animation-duration;
+      // opacity:65%;
+      // scale:1;
+      // animation-fill-mode: forwards;
+      // animation-timing-function: ease-in-out;
+      overflow-x: clip;
+      overflow-y:visible;
+      
+      // filter: url(#text-displacement);
+
+      // & .entrance {
+      //   filter: url(#text-displacement);
+      // }
+
+      // & .swing-active {
+      //   filter: url(#text-displacement);
+      // }
+
+      
+      
+      & #path-group {
+        animation: dth-svg-path-entrance $opening-animation-duration ease-in-out; 
+        animation-play-state: paused;
+        animation-fill-mode: forwards;
+        color: #ee0000ff;
+        // filter: url(#text-dilate);
+        // filter:url(#invert);
+
+
+        
+        // & path {
+        //   // mix-blend-mode:darken;
+        //   // filter:url(#text-dilate);
+        //   // transform:translateZ(0vw);
+
+          
+        // }
+
+        // & #dth-clip-path {
+        //   // filter:url(#invert);
+        //   // transform: translateZ(0);
+
+        // }
+        
+      }
+    }
+}
+
+
+.zen-image {
+  transform: scale(7) translateY(0);
+  overflow-x: clip;
+  overflow-y: visible;
+  width: 100vw;
+  height: $cover-height;
+  // background-clip: inset(0% 0%);
+  position: absolute;
+
+  top:0;
+  transform-style:preserve-3d;
+  perspective-origin: left center;
+  perspective: 1000px;
+  opacity:0.9;
+  // background-blend-mode: luminosity;
+
+  // filter:url(#invert);
+  
+  
+  
+
+  &.entrance-active {
+    animation-name: cover-entrance;
+    animation-duration:calc($opening-animation-duration - (0.16 * $opening-animation-duration)) ;
+    animation-fill-mode: forwards;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: 1;
   }
+
+  &.swing-active {
+    transform: scale(1);
+    // height: $cover-height;
+    animation-name: cover-swing;
+    animation-duration: $swing-animation-duration;
+    animation-fill-mode: both;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    // clip-path:inset(0 0%);
+    
+    // height: 25vh;
+
+  }
+}
+
+.zen-image-fg {
+  // transform: translateZ(0);
+  filter:contrast(500%) blur(5px);
+  position:absolute;
+  bottom:0;
+  width: 100%;
+  height:100%;
+  background-image: url(../../images/zen-image-fg.webp);
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-origin: border-box;
+  background-position: left -64rem bottom 0;
+  background-attachment: fixed;
+  // background-clip: inset(100% 0%);
+  z-index: 5;
+  // margin: -10vw;
+  // transform: scale(3);
+  &.entrance-active {
+    animation-name: fg-entrance;
+    animation-duration: $entrance-animation-duration;
+    animation-fill-mode: forwards;
+    animation-direction:normal;
+    animation-iteration-count: 1;
+    animation-timing-function: ease-in-out;
+  }
+
+  &.swing-active {
+    filter: blur(0px);
+    // transform: translateY($cinema-height-clip * -1);
+    // transform: scale(1);
+    background-size: calc(0.75 * $cover-height);
+    background-position-x: -10rem;
+    animation-name: tilt-fg;
+    animation-duration:$swing-animation-duration;
+    animation-fill-mode: both;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+  }
+  
+}
+
+.bg-container {
+  position:absolute;
+  // transform: scale(1.1);
+  // clip-path: inset(0vh 0vh 0vh 0vh);
+  // clip-path: inset(0% 100% 0% 0%);
+
+  transform-style: preserve-3d;
+  top: 0;
+  left:0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transform-origin: bottom center;
+  transform: scale(1.1);
+
+  // z-index: -1;
+
+  // &.entrance-active {
+  //   animation-name: bg-container-entrance; 
+  //   animation-duration: calc($opening-animation-duration - (0.16 * $opening-animation-duration)); 
+  //   animation-timing-function: ease-in-out; 
+  //   animation-fill-mode: forwards;
+  //   animation-iteration-count: 1; 
+
+  // }
+}
+
+.zen-image-bg {
+  // filter: contrast(0.5);
+  overflow-x:visible;
+  overflow-y:visible;
+  position: absolute;
+  // clip-path: inset(0vh 0vh 0vh 0vh);
+
+  top:0;
+  left:0;
+  background-image: url(../../images/zen-panorama-bg.webp);
+  // background-image:url(#bg);
+  // z-index: 5;
+  // scale:1.5;
+  // background-attachment:fixed;
+  background-size: 500%;
+  background-repeat:repeat-x;
+  background-position-x: 0rem;
+  background-origin: border-box;
+  width: 100%;
+  height: 100%;
+  // margin: 0;
+  // top: 0;
+  transform: rotateY(15deg);
+  // clip-path: inset(0% 0% 0% 100%);
+  opacity: 0;
+
+
+
+  &.entrance-active {
+    // background-size:calc(5 * $cover-height);
+    background-size:500%;
+
+    animation-name: bg-entrance;
+    animation-duration: $entrance-animation-duration;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    animation-direction: normal;
+    animation-timing-function: ease-in-out;
+    // clip-path: inset(0% 0% 0% 100%);
+  }
+
+  &.swing-active {
+    // clip-path: inset(0% 0% 0% 0%);
+    background-size: 185%;
+    background-position-x: -50rem;
+    animation-name:rotate-world;
+    animation-duration:$swing-animation-duration;
+    animation-iteration-count: infinite;
+    animation-fill-mode: both;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+    background-position-y: -10rem;
+  }
+}
+
+@keyframes dth-entrance {
+
+  0% {
+    transform: scale(0.5) translate3d(50vw, 4vw, 5rem);
+    filter:brightness(1);
+  }
+
+  77% {
+    transform: scale(0.5) translate3d(3vw, 4vw, 5rem);
+  }
+
+  100% {
+    transform: scale(0.7) translate3d(0vw, 0vw, 5rem);
+    opacity: 0.4;
+    filter:brightness(3);
+    
+  }
+}
+
+// @keyframes dth-svg-entrance {
+//   0% {
+//     transform: translateY(0vh);
+//     // scale: 1;
+//     // filter: url(#text-displacement);
+//   }
+
+//   54% {
+//     // opacity:100%;
+//     // scale: 1;
+//     // filter: url(#text-displacement);
+//   }
+
+//   100% {
+//     transform: translateY(0vh);
+//   }
+// }
+
+
+@keyframes dth-svg-path-entrance {
+  from {
+    color: #ee0000;
+  }
+  
+  70% {
+    color:#ee0000;
+  }
+
+  to {
+    color: #ffffff;
+    
+    // filter:grayscale(1);
+    
+    
+  }
+}
+
+@keyframes dth-swing {
+  from {
+    background-image: linear-gradient(#c4c4c444, #eeeeee44 90%, #c4c4c444);
+  }
+
+  to {
+    background-image: linear-gradient(#c4c4c444, #eeeeee44 10%, #c4c4c444);
+  }
+  
+}
+
+@keyframes cover-entrance {
+  0% {
+    transform: scale(7);
+    // transform:scale(2, 1.5) translateY(0);
+    animation-timing-function: ease-in;
+    perspective-origin: left center;
+  }
+
+  76.19% {
+    // clip-path:inset(0 $television-width-clip $television-height-clip $television-width-clip);
+    animation-timing-function: ease-out;
+    // transform: scale(2, 1.5);
+    // clip-path: inset(0% 0%);
+    transform: scale(7);
+
+  }
+
+  // 92% {
+  //   // clip-path: inset(0 $cinema-width-clip $cinema-height-clip $cinema-width-clip);
+  //   clip-path:inset(0 0);
+  //   animation-timing-function: ease-in;
+  //   scale:1.2
+    
+  // } 
+
+  100% {
+    // clip-path: inset(0 $cinema-width-clip $cinema-height-clip $cinema-width-clip);
+    // clip-path:inset(0 0);
+    perspective-origin: right center;
+    transform: scale(1);
+
+
+  }
+}
+
+@keyframes cover-swing {
+  from {
+    perspective-origin: right center;
+  }
+
+  to {
+    perspective-origin: left center;
+  }
+}
+
+@keyframes bg-container-entrance {
+  0% {
+    // clip-path: inset(0vh 0vh 0vh 0vh);
+    // clip-path: inset(0% 100% 0% 0%);
+    // opacity: 0;
+
+    // transform: scale(2.2);
+  }
+
+  76.19% {
+    // clip-path: inset(0vh 0vh 0vh 0vh);
+    // clip-path: inset(0% 0% 0% 0%);
+    // opacity: 1;
+    // transform: scale(2.2);  
+
+  }
+
+  100% {
+    // clip-path: inset(0vh 0vh calc(50vh - $cover-height) 0vh);
+    // transform: scale(1);
+    // clip-path: inset(0% 0% 0% 0%);
+    // opacity: 1;
+
+
+  }
+  
+}
+
+@keyframes bg-entrance {
+  0% {
+    background-size: 300%;
+    background-position-x: -40rem;
+    background-position-y: 0rem;
+    animation-timing-function: ease-in-out;
+    transform: rotateY(15deg);
+    opacity: 0;
+
+    // clip-path: inset(0% 100% 0% 0%);
+  }
+
+  30% {
+    background-position-x: -60rem;
+    animation-timing-function: linear;
+    background-position-y: -20rem;
+    // clip-path: inset(0% 0% 0% 0%);
+    opacity: 1;
+
+  }
+
+  50% {
+    background-size: 155%;
+    background-position-y: 0rem;
+    animation-timing-function: ease-in-out;
+  }
+
+  // 65% {
+  //   background-position-y: 0rem;
+  //   animation-timing-function: ease-in-out;
+  // }
+
+  100% {
+    background-size: 165%;
+    background-position-x: -10rem;
+    background-position-y: -20rem;
+    transform: rotateY(-15deg); 
+    // clip-path: inset(0% 0% 0% 0%);  
+    opacity: 1;
+
+  }
+}
+
+@keyframes fg-entrance {
+  0% {
+    // clip-path: inset(0% 0% 0% 100%);
+    // transform: scale(3);
+    filter:contrast(200%) blur(5px);
+    // background-size: calc(0.2 * $television-height);
+    background-size: calc(0.2 * $cover-height);
+    background-position-x:0rem;
+    background-position-y: bottom 0rem;
+    animation-timing-function: ease-in-out;
+  }
+
+  30% {
+    filter:contrast(200%) blur(2px);
+    background-position-x: 60rem;
+    animation-timing-function: ease-in-out;
+    // background-size: calc(0.6 * $cinema-height);
+    background-size: calc(0.75 * $cover-height);
+    // clip-path: inset(0% 0% 0% 0%);
+    
+
+    // transform: translateY($cinema-height-clip * -1); 
+    // transform: translateY($cinema-height-clip * -1); 
+    // transform: translateY(5vw);
+    // transform: translateY(5vw);
+    background-position-y: bottom -5rem; 
+  }
+
+  50% {
+    filter:contrast(200%) blur(2px);
+    // background-size: calc(0.7 * $cinema-height);
+    background-size: calc(0.85 * $cover-height);
+    // transform: translateY(5vw); 
+
+    // background-position-x: 0rem;
+    animation-timing-function: ease-in-out;
+  }
+
+  100% {
+    filter:contrast(200%) blur(2px);
+    // background-size: calc(0.75 * $cinema-height);
+    background-size: calc(0.75 * $cover-height);
+    background-position-x: 0rem;
+    background-position-y: bottom 0rem;
+    // transform: translateY($cinema-height-clip * -1);
+    // transform: translateY(0vw); 
+
+  }
+}
+
+@keyframes tilt-fg {
+  0% { 
+    filter:contrast(200%) blur(2px);
+    background-position-x: 0rem;
+    background-position-y: bottom;
+    animation-timing-function: ease-in-out;
+    background-size: calc(0.75 * $cover-height);
+    // transform: translateY(0vw); 
+  }
+
+  100% {
+    filter:contrast(200%) blur(0px);
+    background-position-x: 60rem;
+    background-position-y: bottom 10rem;
+    animation-timing-function: ease-in-out;
+    background-size: calc(0.85 * $cover-height);
+    // transform: translateY(5vw); 
+  }
+}
+
+@keyframes rotate-world {
+  0%{
+    opacity: 1;
+    background-position-x: -10rem;
+    background-position-y: -20rem;
+    background-size: 165%;
+    transform: rotateY(-15deg);
+    animation-timing-function: ease-in-out;
+  }
+
+  100% {
+    background-position-x: -50rem;
+    background-position-y: 0rem; 
+    animation-timing-function: ease-in-out;
+    background-size: 165%;
+    transform: rotateY(15deg);  
+  }
+}
+
+$interior-height: calc(100vh - $cover-height);
+#house-interior {
+  width: 100vw;
+  height:$interior-height;
+  transform-style: preserve-3d;
+  & * {
+    transform-style: preserve-3d;
+    perspective-origin: 101% 0%;
+    perspective: 30vw;
+  }
+
+  & #right-frame {
+    position:absolute;
+    right:0;
+    top:0;
+    width:50%;
+    height:$interior-height;
+    // border-style:solid;
+    // border-left-color:#ffffff;
+    // border-color: #000 #000 #000 #ffffff;
+    border-left-width: 3%;
+    border-image:url('../../assets/woodgrain-ttb.svg') 0 0 0 100 / 0 0 0 6.2%;
+    // border-image: linear-gradient(to bottom, #505050 0%, #fff 6%);
+
+    & #right-lintel {
+      position:absolute;
+      right:0;
+      width: 93.7%;
+      height: calc(0.23 * $interior-height);
+      // border-image:url('../../assets/wood-grain-ltr.png#xywh=150,150, 100%, 1.1vw') 0 0 100 0 / 0 0 1.1vw 0;
+      border-image:url('../../assets/woodgrain-ltr.svg') 0 0 40 0 / 0 0 1.6vw 0;
+      overflow: hidden;
+      // background-blend-mode: darken;
+      filter: contrast(100%);
+      & #lintel-paper {
+        width: 100%;
+        height: calc(0.185 * $interior-height);
+        // background-image: url('../../assets/white-wall.png#xywh=pixel:0,0,689,20'),linear-gradient(#e7e7e7); //linear-gradient(to bottom, #c5c5c528 0%, #e7e7e7cc 4%, #e7e7e7cc 79%, #c5c5c528 83%), linear-gradient(#c5c5c528, #c5c5c544 7%, #c5c5c528);
+        background-image: linear-gradient(#efefef99, #efefef99), url('../../assets/white-wall.png#xywh=0,0,689,10'); //linear-gradient(to bottom, #c5c5c528 0%, #e7e7e7cc 4%, #e7e7e7cc 79%, #c5c5c528 83%), linear-gradient(#c5c5c528, #c5c5c544 7%, #c5c5c528);
+        // background-blend-mode:multiply;
+        filter: contrast(200%);
+      }
+
+      transform: translateZ(0);
+      // background-image: linear-gradient(to bottom, #505050dd 0%, #c4c4c4dd 4%, #c6c6c6dd 85.9%, #00000000 86%);
+      // border-color:#000;
+    }
+
+  }
+
+  $floor-angle:90deg;
+  $floor-length:23.7vw;
+  $tatami-width: 23vw;
+
+  & #left-frame {
+    width: 50%;
+    height: $interior-height;
+    position: absolute;
+    top:0;
+    transform-style: preserve-3d;
+    // perspective: 280px;
+    // perspective: 30vw;
+    // perspective-origin: 101% 40%;
+    overflow: clip;
+    
+  
+  & #left-side-center-screen {
+    position:absolute;
+    bottom: 0;
+    right: $tatami-width;
+    width: $tatami-width;
+    // height: 83%;
+    height: calc(0.858 * $interior-height); // 34vw;
+    transform-origin: 50% 0%;
+    transform: translateZ(-23.7vw);
+    border-style: solid;
+    border-width: 3px;
+    border-color: #c5c5c5;
+  }
+  & #dais-partition {
+    position:absolute;
+    right:0px;
+    // bottom:0;
+    transform: translateZ(-11.85vw);
+    // transform-origin: 70% 0%;
+    width:$tatami-width;
+    height:$interior-height;
+    transform-style: preserve-3d;
+    border-image: url('../../assets/woodgrain-ttb.svg') 0 0 0 100 / 0 0 0 13%;
+    // border-style:solid;
+    // border-width:3vw;
+    // border-color:#c5c5c5;
+    & #dais-bottom-lintel {
+      transform: translateZ(-2.15vw);
+    }
+  }
+  & #left-lintel {
+      position:absolute;
+      left:0;
+      top:0;
+      width: 100%;
+      height: calc(0.15 * $interior-height);
+      // border-bottom-style: solid;
+      // border-color: #c5c5c5;
+      border-bottom-width: 1.6vw;
+      // border-image: url('../../assets/wood-grain-ltr.png#xywh=100,100,100%,1.6vw') 0 0 100 0 / 0 0 1.6vw 0;
+      border-image: url('../../assets/woodgrain-ltr.svg#xywh=100,100,300,3') 0 0 30 0 / 0 0 13% 0;
+      transform:translateZ(0);
+      transform-origin: 50% 100%;
+      & #struts {
+        width:100%;
+        // height:100%;
+        height:calc(0.15 * $interior-height);
+
+        & .end-strut {
+          filter:brightness(0.6);
+          & path {
+            fill: #333333;
+          }
+        }
+
+        & .mid-strut {
+          filter: brightness(0.3);
+        }
+
+        & .brace {
+          filter: brightness(0.6);
+        }
+
+      }
+    }
+
+    & #left-side-center-tatami {
+      position:absolute;
+      bottom:0;
+      right:$tatami-width;
+      width: $tatami-width;
+      height: $floor-length;
+      transform-origin: 200% 100%;
+      transform: rotate3d(1, 0, 0, $floor-angle);
+      border-style:solid;
+      border-width: 3px 6.5px;
+      border-color: #c5c5c5;
+      
+    }
+
+    
+    & #raised-tatami {
+      position:absolute;
+      width:$tatami-width;
+      right:0;
+      bottom: 0;
+      transform-origin: 100% 100%;
+      transform: translate3d(0, -2.2vw, calc(-1 * ($floor-length / 2))) rotate3d(1, 0, 0, $floor-angle);
+      border-style: solid;
+      border-color: #c5c5c5;
+      border-width: 3px 6.5px 3px 14.5px;
+      height: calc(($floor-length / 2) - (0.076 * $interior-height));
+    }
+    & #left-side-right-bottom-tatami {
+      position:absolute;
+      box-sizing: border-box;
+      bottom:0;
+      right:0;
+      width: $tatami-width;
+      height: calc($floor-length / 2);
+      transform-origin: 100% 100%;
+      transform: rotate3d(1, 0, 0, $floor-angle);
+      border-style:solid;
+      border-width: 3px 6.5px;
+      border-color: #c5c5c5;
+    }
+
+    & #left-side-left-tatami {
+      position:absolute;
+      bottom: 0;
+      right: calc($tatami-width * 2);
+      width: $tatami-width;
+      height: $floor-length;
+      transform-origin: 300% 100%;
+      transform: rotate3d(1, 0, 0, $floor-angle);
+      border-style:solid;
+      border-width: 3px 6.5px;
+      border-color: #c5c5c5;
+    }
+
+  }
+}
+
+#stone-canvas canvas {
+  width: 100vw;
+  height: 100vh;
 }

@@ -1,7 +1,9 @@
 .layout {
-  & > {
-    * {
-      display: flex; 
-    }
+  & > * {
+      display: flex;
+      position: relative;
+      flex-direction: column;
+      width: 100%;
+      z-index:5;
   }
 }

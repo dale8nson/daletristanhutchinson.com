@@ -8,8 +8,6 @@ DEBUG && console.log(`typeof Logo: ${typeof DeiruLogo}`);
 DEBUG && console.log(`Logo: ${DeiruLogo}`);
 
 const Deiru = () => {
-
-  
   return (
     <div className='deiru'>
       <DeiruLogo/>

@@ -12,15 +12,15 @@ $left-position: auto;
 }
 
 .deiru {
-  position: relative;
-  overflow:visible;
+  position:relative;
+  // overflow:visible;
   z-index:10;
   width: $end-width;
   height: $end-height;
   left: 0%;
-  transition: all  ease-in-ease-out;
+  top:0vh;
   animation-name: entry;
-  animation-duration: 4s;
+  animation-duration: 6s;
 }
 
 
@@ -29,17 +29,17 @@ $left-position: auto;
     width: $start-width;
     height: $start-height;
     left:center-position($start-width);
-    top: 25%;
+    top: 100vh;
     opacity: 0%;
   }
   25% {
     width:$shrink-width;
-    top: 10%;
+    top: 10vh;
     left:$left-position;
     opacity: 50%;
   }
   75% {
-    top:10%;
+    top:10vh;
     width:$shrink-width;
     left:$left-position;
     opacity:100%;
@@ -47,7 +47,7 @@ $left-position: auto;
   100% {
     width:$end-width;
     left:0%;
-    top: 0%;
+    top: 0vh;
     
   }
 }

@@ -1,10 +1,9 @@
 import * as React from 'react';
 import {LargeTitle} from '@fluentui/react-components';
-import { alt } from '../utils';
-import Brand from './index.js';
-// import './scss/_layout.scss';
 
-const DEBUG = true;
+import './scss/_layout.scss';
+
+const DEBUG = false;
 const Layout = (props) => {
   const { className, header, leftSidebar, rightSidebar, footer, children } = props;
 
@@ -13,7 +12,7 @@ const Layout = (props) => {
   DEBUG && console.log(`children: ${children}`);
   const style = {
     gridTemplateColumns: `minmax(max-content,15%) 1fr minmax(max-content,15%)`,
-    gridTemplateRows: `minmax(max-content, 15%) 1fr minmax(max-content, 15%)`,
+    gridTemplateRows: `max-content 1fr minmax(max-content, 15%)`,
     // gridTemplateAreas: `"${alt`header/left-sidebar/!main-content,header/!main-content,header/right-sidebar/!main-content`}" "${alt`left-sidebar/!main-content, !main-content,right-sidebar/!main-content`}"
     //                    "${alt`footer/left-sidebar/!main-content,footer/!main-content,footer/right-sidebar/!main-content`}"`
     gridTemplateAreas: `"${header ? 'header' : leftSidebar ? 'left-sidebar' : 'main-content'} ${header ? 'header' : 'main-content'} ${header ? 'header' : rightSidebar ? 'right-sidebar' : 'main-content'}"
@@ -28,13 +27,11 @@ const Layout = (props) => {
   );
 }; 
 
-
 Layout.Header = ({className, children}) => (
 
-  <div className={`header ${className}`} style={{gridArea:'header', position:'relative', display: 'flex', margin:'1%', zIndex:'5', overflow:'visible'}}>
+  <div className={`header ${className}`} style={{gridArea:'header', overflow:'visible'}}>
     {children}
   </div>
-
 );
 
 Layout.Header.Brand = (props) => {

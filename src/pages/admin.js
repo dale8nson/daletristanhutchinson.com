@@ -13,4 +13,4 @@ const AdminPage = () => {
 
 export default AdminPage;
 
-export const Head = () => <Seo title='Home'/>
+export const Head = () => <Seo title='Admin'/>

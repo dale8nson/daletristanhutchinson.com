@@ -9,8 +9,12 @@ const home: Theme = {
   colors: {
     text: '#ee0000ff',
     background: '#000',
-    primary: '#33e',
+    primary: '#ee0000ff',
+    borderColor: '#ee0000ff'
   },
+  sizes: {
+    container: '100%'
+  }
 }
 
 export default home;
