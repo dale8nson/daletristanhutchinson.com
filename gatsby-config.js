@@ -14,7 +14,7 @@ module.exports = {
   "gatsby-plugin-sharp", 
   "gatsby-transformer-sharp", 
   "gatsby-plugin-sass", 
-  "gatsby-plugin-mdx", 
+  // "gatsby-plugin-mdx", 
   "gatsby-plugin-typescript",
   {
     resolve: 'gatsby-source-filesystem',
@@ -30,13 +30,13 @@ module.exports = {
       "path": "./src/pages/"
     },
     __key: "pages"
-  }, {
-    resolve: 'gatsby-source-filesystem',
-    options: {
-      "name": "articles",
-      "path": "./articles/"
-    }
-  },
+  }, //{
+  //   resolve: 'gatsby-source-filesystem',
+  //   options: {
+  //     "name": "articles",
+  //     "path": "./articles/"
+  //   }
+  // },
 {
   resolve: "gatsby-plugin-react-svg",
   options: {
@@ -44,5 +44,10 @@ module.exports = {
       include: /images\/.*[.]svg$/,
     }
   }
-}]
+}],
+
+flags: {
+  DEV_SSR: true,
+}
+
 };

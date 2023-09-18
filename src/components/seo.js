@@ -11,8 +11,9 @@ const Seo = ({title}) => {
       }
     }
   `);
+  const text = `${title} | ${data.site.siteMetadata.title}`;
   return (
-    <title>{title} | {data.site.siteMetadata.title}</title>
+    <title>{text}</title>
   )
 };
 

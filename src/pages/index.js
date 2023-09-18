@@ -103,21 +103,22 @@ const IndexPage = () => {
     <ThemeUIProvider theme={ home }>
     <Layout header>
         <Layout.Header>
-          
         {/* <Container style={{overflowX:'clip', overflowY:'visible'}}> */}
           {/* <div style={{margin:'0', height:'auto', width:'100%', overflowX:'clip', overflowY:'visible'}}> */}
-            <div className='zen-image' ref={zenRef}>
-              <div className='bg-container' style={{overflow:'hidden'}} ref={zenBgContainerRef}>
-                <div className='zen-image-bg' ref={zenBgRef} id='zen-bg' />
-                <div className='zen-image-fg'  ref={zenFgRef} onAnimationEnd={handleFgAnimationEnd} />
+            {/* <div className='zen-image' ref={zenRef}> */}
+              {/* <div className='bg-container' style={{overflow:'hidden'}} ref={zenBgContainerRef}> */}
+                {/* <div className='zen-image-bg' ref={zenBgRef} id='zen-bg' /> */}
+                {/* <div className='zen-image-fg'  ref={zenFgRef} onAnimationEnd={handleFgAnimationEnd} /> */}
                 {/* <DaleTristanHutchinson className='dth' ref={setupDTHAnims} onAnimationStart={handleDTHAnimationStart} onAnimationEnd={handleDTHAnimationEnd} /> */}
 
-              </div>
-            </div>
+              {/* </div> */}
+            {/* </div> */}
           {/* </div> */}
         {/* </Container> */}
         {/* <Divider/> */}
-          <GLHeader />
+        <Canvas>
+         <GLHeader />
+        </Canvas>
         </Layout.Header>
       <Layout.MainContent>
       {/* <Canvas id='stone-canvas' dpr={window.devicePixelRatio} style={{width: '1463px', height: 'auto'}}>
@@ -125,7 +126,7 @@ const IndexPage = () => {
         <directionalLight position={new THREE.Vector3(-10,-5,5)} args={[0xcccccc, 0.7, 4]} castShadow={true} />
         <StoneImage />
       </Canvas> */}
-      {/* <div id='house-interior' >
+      <div id='house-interior' >
         <div id='right-frame'>
           <div id='right-lintel'>
             <div id='lintel-paper' />
@@ -157,7 +158,7 @@ const IndexPage = () => {
             </svg>
           </div>
         </div>
-      </div> */}
+      </div>
       </Layout.MainContent>
     </Layout>
     </ThemeUIProvider>
