@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunkorganiser=self.webpackChunkorganiser||[]).push([[181],{7921:function(e,n,t){t.r(n),t.d(n,{Head:function(){return l}});var r=t(7294),a=t(9927);t(4160);n.default=()=>r.createElement(a.lq,null);const l=()=>r.createElement(a.pQ,{title:"Home"})}}]);
-//# sourceMappingURL=component---src-pages-admin-js-d2b3b033bba71a32007d.js.map
