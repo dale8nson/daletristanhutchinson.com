@@ -1,4 +1,3 @@
-import * as React from 'react';
 import  DeiruLogo  from '../images/deiru-logo.svg';
 import './scss/_deiru.scss';
 

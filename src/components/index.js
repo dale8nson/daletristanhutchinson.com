@@ -12,9 +12,10 @@ import CharacterString from './character-string';
 import Container from './container';
 // import DaleTristanHutchinson from './dale-tristan-hutchinson';
 import ParallaxImage from './parallax-image';
-import Zen3D from './zen-3d';
+// import Zen3D from './zen-3d';
 import DaleTristanHutchinson from './dth-svg';
 import GLHeader from './gl-header';
+import GLInterior from './gl-interior';
 
 
 export {
@@ -32,6 +33,7 @@ export {
   Container,
   DaleTristanHutchinson,
   ParallaxImage,
-  Zen3D,
-  GLHeader
+  // Zen3D,
+  GLHeader,
+  GLInterior
 };

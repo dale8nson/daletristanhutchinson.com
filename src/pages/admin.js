@@ -1,6 +1,6 @@
 import * as React from "react"
 import {AdminLayout, Seo } from '../components';
-import { Link, useStaticQuery} from 'gatsby';
+// import { Link, useStaticQuery} from 'gatsby';
 
 
 const AdminPage = () => {

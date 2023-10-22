@@ -13,7 +13,7 @@ $cinema-height: calc($cinema-screen-height-rate * $cinema-width);
 $cinema-margin: calc((100vw - $cinema-width) / 2);
 
 // $cover-height: max($television-height,$cinema-height);
-$cover-height: 15vw;
+$cover-height: 10vw;
 $television-width-clip: $television-margin;
 $television-height-clip:calc($television-height - $cover-height);
 $cinema-width-clip: calc((100vw - $cinema-width) / 2);
@@ -39,6 +39,7 @@ body {
   overflow-x: hidden;
   z-index: 20;
   height: $cover-height;
+  // height: 100%;
 }
 
 .dth {
@@ -756,4 +757,20 @@ $interior-height: calc(100vh - $cover-height);
 #stone-canvas canvas {
   width: 100vw;
   height: 100vh;
+}
+
+
+#house {
+  width: 100vw;
+  height: calc(100vh - $cover-height);
+ 
+}
+
+$canvas-width: 90vw;
+
+#canvas {
+  width: $canvas-width;
+  // height: calc($canvas-width / 1.8306351183063512) !important;
+  height: calc($canvas-width / 1.5978260869565217) !important;
+  overflow: visible !important;
 }

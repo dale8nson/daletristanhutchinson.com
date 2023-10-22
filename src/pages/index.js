@@ -1,132 +1,65 @@
 
-import { useRef } from 'react';
-import { Seo, Deiru, Layout, ParallaxImage, CharacterString, DaleTristanHutchinson, Zen3D, GLHeader } from '../components';
-import { home } from '../themes';
-import { StaticImage } from 'gatsby-plugin-image';
-import { ThemeUIProvider, Flex, NavLink, MenuButton, Container, Text, Divider, Box, Image } from 'theme-ui';
-// import {Canvas} from '@react-three/fiber';
+import { useEffect, useRef, useState, Suspense } from 'react';
+import { Seo,Layout, GLHeader, GLInterior } from '../components';
 import './scss/_index.scss';
-import endStrut from '../assets/woodgrain-ttb.svg';
-import brace from '../assets/woodgrain-ltr.svg';
-import bg from '../assets/zen-panorama-bg.webp#xywh=0,0,1470,500';
-import {Canvas, useLoader, useThree } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StoneImage } from '../components/gl-header';
-
+import { Slider, Label } from '@fluentui/react';
+import { Spinner } from '@nextui-org/react';
 
 const IndexPage = () => {
-  const zenRef = useRef(null);
-  const zenFgRef = useRef(null);
-  const zenBgRef = useRef(null);
-  // const dTHRef = {current:null};
-  const dTHRef = useRef(null);
 
-  let dthAnims;
-  // const dTHRef = useRef(null);
-  const zenBgContainerRef = useRef(null);
+  const houseAspect = useRef();
+  useEffect(() => { houseAspect.current = window.outerWidth / ((window.outerHeight * 0.8) - window.outerWidth * 0.15)});
 
-  // const animWorker = new Worker(new URL('./dthAnimationWorker.js', import.meta.url));
-  const setupDTHAnims = (node) => {
-    // console.log('setupDTHAnims');
-    const anims = node.getAnimations({subtree:true});
-    // const animProxyHandler = {};
-    // const animProxy = new Proxy(anims, animProxyHandler);
-    // animWorker.postMessage(animProxy);
-    dTHRef.current = node;
-    // animWorker.postMessage();
-    // anims.forEach(anim =>  console.log(anim));
-    // dthAnims = anims.filter(anim => anim.effect.target.id.includes('p-'));
-    const dTHAnim = anims.find(anim => anim.animationName === 'dth-entrance');
-    dTHAnim.ready.then(() => requestAnimationFrame(() => dTHAnim.play()));
-    // const SVGAnim = anims.find(anim => anim.animationName === 'dth-svg-entrance');
-    // SVGAnim.ready.then(() => requestAnimationFrame(() => SVGAnim.play()));
-    // const pathAnim = anims.find(anim => anim.animationName === 'dth-svg-path-entrance')
-    // pathAnim.ready.then(() => requestAnimationFrame(() => pathAnim.play()));
-    // const firstLetter = anims.find(anim => anim.effect.target.id === 'p-1');
-    // firstLetter.ready.then(() => requestAnimationFrame(() => firstLetter.play()));
-  }
-
-  const animateEntrance = () => {
-    // console.log('animateEntrance');
-
-    zenRef.current.className += !zenRef.current.className.includes('entrance-active') ? ` entrance-active` : '';
-    zenFgRef.current.className += !zenFgRef.current.className.includes('entrance-active') ? ` entrance-active` : '';
-    zenBgRef.current.className += !zenBgRef.current.className.includes('entrance-active') ? ` entrance-active` : '';
-    zenBgContainerRef.current.className += !zenBgContainerRef.current.className.includes('entrance-active') ? ` entrance-active` : '';
-    
-  }
-
-  function handleDTHAnimationStart (e) {
-    animManager(dTHRef);
-
-  }
-
-  function animManager(ref) {
-    const animations = ref.current.getAnimations();
-    const dTHAnim = animations.find(anim =>  anim.animationName === 'dth-entrance');
-    const progress = dTHAnim.effect.getComputedTiming().progress;
-    if(progress >= 0.16) {
-      requestAnimationFrame(animateEntrance);
-      return;
-    }
-    // setTimeout(() => requestAnimationFrame(() => animManager(ref), 1000));
-    requestAnimationFrame(() => animManager(ref));
-  }
-
-  function handleDTHAnimationEnd (e) {
-      const id = e.target.id;
-      if(id.startsWith('p-')) {
-        const pathNumber = Number(id.match(/\d+/)[0]);
-        if(pathNumber < 19) {
-        requestAnimationFrame(() => dthAnims[pathNumber].play());
-      }
-    }  
-  }
+  const [sX, setSX] = useState(0.01);
+  const [sY, setSY] = useState(0.01);
+  const [oX, setOX] = useState(0.01);
+  const [oY, setOY] = useState(0.01);
   
-
-  const handleFgAnimationEnd = (e) => {
-    if(e.animationName === 'fg-entrance') {
-      requestAnimationFrame(animateSwing);
-    }
+  const onSXChange = (data) => {
+    console.log(`onSXChange data`, data);
+    setSX(data);
   }
 
-  function animateSwing () {
-    zenRef.current.className = `${zenRef.current.className.replace('entrance-active','')} swing-active`;
-    zenFgRef.current.className = `${zenFgRef.current.className.replace('entrance-active','')} swing-active`;
-    zenBgRef.current.className = `${zenBgRef.current.className.replace('entrance-active','')} swing-active`;
+  const onSYChange = (data) => {
+    setSY(data);
   }
-  const strutArray = Array(50).fill(null).map((strut, i) => {
-    return <use key={i} href='#mid-strut' className='mid-strut' x={(i + 1) * 14.7} y='-5' />
-  });
-  
+
+  const onOXChange = (data) => {
+    setOX(data);
+  }
+
+  const onOYChange = (data) => {
+    setOY(data);
+  }
+
   return (
-    <ThemeUIProvider theme={ home }>
-    <Layout header>
-        <Layout.Header>
-        {/* <Container style={{overflowX:'clip', overflowY:'visible'}}> */}
-          {/* <div style={{margin:'0', height:'auto', width:'100%', overflowX:'clip', overflowY:'visible'}}> */}
-            {/* <div className='zen-image' ref={zenRef}> */}
-              {/* <div className='bg-container' style={{overflow:'hidden'}} ref={zenBgContainerRef}> */}
-                {/* <div className='zen-image-bg' ref={zenBgRef} id='zen-bg' /> */}
-                {/* <div className='zen-image-fg'  ref={zenFgRef} onAnimationEnd={handleFgAnimationEnd} /> */}
-                {/* <DaleTristanHutchinson className='dth' ref={setupDTHAnims} onAnimationStart={handleDTHAnimationStart} onAnimationEnd={handleDTHAnimationEnd} /> */}
+    
+    // <ThemeUIProvider theme={ home }>
+    // <Layout header>
+    //   <Layout.Header>
+    <>
+      {/* <Suspense fallback={<Spinner label='Loading. Please wait...' size='lg' color='danger' />} > */}
+      {/* <Suspense fallback={<span>Loading. Please wait...' </span>} > */}
 
-              {/* </div> */}
-            {/* </div> */}
-          {/* </div> */}
-        {/* </Container> */}
-        {/* <Divider/> */}
-        <Canvas>
-         <GLHeader />
+        <Canvas id='canvas' >
+          <directionalLight position={new THREE.Vector3(-40,0,10)} args={[0xffffff, 1.2]} castShadow={false} />
+          <directionalLight position={new THREE.Vector3(40,0,10)} args={[0xffffff, 1.2]} castShadow={false} />
+          <GLHeader {...{sX, sY, oX, oY}} />
+          <GLInterior />
         </Canvas>
-        </Layout.Header>
-      <Layout.MainContent>
-      {/* <Canvas id='stone-canvas' dpr={window.devicePixelRatio} style={{width: '1463px', height: 'auto'}}>
-        <ambientLight />
-        <directionalLight position={new THREE.Vector3(-10,-5,5)} args={[0xcccccc, 0.7, 4]} castShadow={true} />
-        <StoneImage />
-      </Canvas> */}
-      <div id='house-interior' >
+      {/* </Suspense> */}
+      {/* </Layout.Header> */}
+      {/* <Layout.MainContent> */}
+        {/* <Canvas id='house'> */}
+          {/* <hemisphereLight args={[0xffffff]} /> */}
+          {/* <directionalLight position={new THREE.Vector3(-50,20,10)} args={[0xffffff, 1.5]} castShadow={true} target={new THREE.Object3D()}/> */}
+          {/* <directionalLight position={new THREE.Vector3(40,0,10)} args={[0xffffff, 1.2]} castShadow={false} /> */}
+          {/* <perspectiveCamera fov={50} aspect={houseAspect} near={0.1} far={2000} /> */}
+          
+        {/* </Canvas> */}
+      {/* <div id='house-interior' >
         <div id='right-frame'>
           <div id='right-lintel'>
             <div id='lintel-paper' />
@@ -158,13 +91,14 @@ const IndexPage = () => {
             </svg>
           </div>
         </div>
-      </div>
-      </Layout.MainContent>
-    </Layout>
-    </ThemeUIProvider>
+      </div> */}
+      </>
+    //   </Layout.MainContent>
+    // </Layout>
+    // </ThemeUIProvider>
   )
 };
 
 export default IndexPage;
 
-export const Head = () => <Seo title='Home'/>;
+// export const Head = () => <Seo title='Home'/>;

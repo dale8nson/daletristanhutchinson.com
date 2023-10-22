@@ -1,7 +1,6 @@
 import * as React from 'react';
 
-import { Button, TabList, Tab, Display, LargeTitle, FluentProvider, teamsLightTheme, makeStyles } from '@fluentui/react-components';
-import { TreeItem, Tree } from '@fluentui/react-components/unstable';
+import { TabList, Tab, FluentProvider } from '@fluentui/react-components';
 import { Notes, Library, Articles, Site, Layout } from './index.js';
 
 import { dThTheme } from '../themes';
@@ -10,7 +9,7 @@ const DEBUG = false;
 DEBUG && console.log(`admin-layout.js: Layout: \n${Object.entries(Layout).map(entry => entry.join(':\t')).join('\n')}`);
 
 const  AdminLayout = (props) => {
-  const { children } = props;
+  // const { children } = props;
   const [tab, setTab] = React.useState('');
   const onTabSelect = (event, data) => {
     setTab(data.value);

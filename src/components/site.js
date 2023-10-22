@@ -1,7 +1,7 @@
 import * as React from 'react';
-import parse from 'html-react-parser';
-import { useStaticQuery, graphql } from 'gatsby';
-import Header from './header';
+// import parse from 'html-react-parser';
+// import { useStaticQuery, graphql } from 'gatsby';
+// import Header from './header';
 import './scss/_site.scss';
 
 const Site = React.memo(() => {
@@ -16,7 +16,7 @@ const Site = React.memo(() => {
     // }`);
   
   // const gq = siteData.content;
-  const [element, setElement] = React.useState(null);
+  // const [element, setElement] = React.useState(null);
   const request = new Request('httpsL//www/theage.com.au/',{mode:'no-cors'});
 
   // fetch('http://192.168.64.2/wp-dev/',{mode:'no-cors'})

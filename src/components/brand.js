@@ -1,5 +1,4 @@
 import { LargeTitle } from '@fluentui/react-components';
-import * as React from 'react';
 import './scss/_brand.scss';
 const Brand = (props) => {
   const { name } = props;

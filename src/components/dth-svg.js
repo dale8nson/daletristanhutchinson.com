@@ -1,13 +1,7 @@
-import * as React from "react"
-import {forwardRef, useRef, memo } from 'react';
-import paintMask from '../images/paint-luminance.webp';
-import frostedGlass from '../images/frosted-glass-displacement.webp';
-import paintLuminance from '../images/paint-luminance.webp';
+import {forwardRef} from 'react';
 import './scss/_dale-tristan-hutchinson.scss';
 
 const DaleTristanHutchinson = forwardRef(({className, onAnimationStart, onAnimationEnd}, ref) => {
-
-  const animWorker = new Worker(new URL('../anim-worker.js', import.meta.url));
 
   const setupAnims = (node) => {
     // animWorker.postMessage(document);
@@ -22,7 +16,6 @@ const DaleTristanHutchinson = forwardRef(({className, onAnimationStart, onAnimat
     const anims = [];
     for (const letter of letters.values()) {
       const strokeDashoffset = letter.getAttribute('stroke-dashoffset');
-      const duration = Math.round((strokeDashoffset / baseStrokeDashoffset) * baseAnimTime);
       // console.log(`strokeDashoffset: ${strokeDashoffset}`,`duration: ${duration}`);
       const effect = new KeyframeEffect(letter, [{strokeDashoffset:strokeDashoffset}, { strokeDashoffset: 0}], {duration:baseAnimTime, fill:'forwards', easing:'linear'});
       const anim = new Animation(effect, document.timeline);
