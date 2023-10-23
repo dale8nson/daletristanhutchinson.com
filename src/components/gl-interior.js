@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { useThree, useLoader } from '@react-three/fiber';
+import { useMemo } from 'react';
+import { useThree, useLoader, useFrame } from '@react-three/fiber';
 import whiteWall from '../assets/white-wall.png';
 import tatami from '../assets/TexturesCom_Wicker0046_12_seamless_S.jpg';
 import tatamiTrim from '../assets/TexturesCom_Wicker0046_15_S.jpg';
@@ -12,6 +12,8 @@ import paper from '../assets/TCom_PaperDecorative0032_1_seamless_M.jpeg';
 import plaster from '../assets/TCom_PlasterBare0143_1_seamless_M.jpeg'
 import ryouanji from '../assets/victor-lu-1EJX-rotoeg-unsplash.jpg';
 import hikite from '../assets/hikite.png';
+import gotama from '../assets/Gotama-edited.png';
+// import woodPanel1 from '../assets/TCom_WoodFine0082_3_seamless_M.jpeg'
 
 const Vec2 = (n1 = null, n2 = null) => new THREE.Vector2 (n1, n2);
 const Vec3 = (n1 = null, n2 = null, n3 = null) => new THREE.Vector3(n1, n2, n3);
@@ -103,59 +105,6 @@ const Shader = ({
 
 
         float contrastThreshold = 0.4;
-
-        if(useBackMap && antialias) {
-          vec4 lCol = texture2D(map,vec2(scaledUV.x - 0.01, scaledUV.y));
-          vec4 lBMCol = texture2D(backMap,vec2(scaledUV.x - 0.01, scaledUV.y));
-          vec4 rCol = texture2D(map, vec2(scaledUV.x + 0.01, scaledUV.y));
-          vec4 rBMCol = texture2D(backMap,vec2(scaledUV.x + 0.01, scaledUV.y));
-          vec4 tCol = texture2D(map,vec2(scaledUV.x, scaledUV.y + 0.01));
-          vec4 tBMCol = texture2D(backMap,vec2(scaledUV.x, scaledUV.y + 0.01));
-          vec4 bCol = texture2D(map, vec2(scaledUV.x, scaledUV.y - 0.01));
-          vec4 bBMCol = texture2D(backMap,vec2(scaledUV.x, scaledUV.y - 0.01));
-
-          float lColAvr = (lCol.r + lCol.g + lCol.b) / 3.0;
-          float lBMColAvr = (lBMCol.r + lBMCol.g + lBMCol.b) / 3.0;
-          float rColAvr = (rCol.r + rCol.g + rCol.b) / 3.0;
-          float rBMColAvr = (rBMCol.r + rBMCol.g + rBMCol.b) / 3.0;
-          float tColAvr = (tCol.r + tCol.g + tCol.b) / 3.0;
-          float tBMColAvr = (tBMCol.r + tBMCol.g + tBMCol.b) / 3.0;
-          float bColAvr = (bCol.r + bCol.g + bCol.b) / 3.0;
-          float bBMColAvr = (bBMCol.r + bBMCol.g + bBMCol.b) / 3.0;
-
-          if(lCol.a > 0.01) {
-            if(abs(lColAvr - lBMColAvr) > contrastThreshold) {
-              col.r = (lCol.r + lBMCol.r) / 2.0;
-              col.g = (lCol.g + lBMCol.g) / 2.0;
-              col.b = (lCol.b + lBMCol.b) / 2.0; 
-            }
-          }
-
-          if(rCol.a > 0.01) {
-            if(abs(rColAvr - rBMColAvr) > contrastThreshold) {
-              col.r = (rCol.r + rBMCol.r) / 2.0;
-              col.g = (rCol.g + rBMCol.g) / 2.0;
-              col.b = (rCol.b + rBMCol.b) / 2.0; 
-            }
-          }
-
-          if(tCol.a > 0.01) {
-            if(abs(tColAvr - tBMColAvr) > contrastThreshold) {
-              col.r = (tCol.r + tBMCol.r) / 2.0;
-              col.g = (tCol.g + tBMCol.g) / 2.0;
-              col.b = (tCol.b + tBMCol.b) / 2.0; 
-            }
-          }
-
-          if(bCol.a > 0.01) {
-            if(abs(bColAvr - bBMColAvr) > contrastThreshold) {
-              col.r = (bCol.r + bBMCol.r) / 2.0;
-              col.g = (bCol.g + bBMCol.g) / 2.0;
-              col.b = (bCol.b + bBMCol.b) / 2.0; 
-            }
-          }
-          
-        }
 
         float red, green, blue, grey, alpha;
 
@@ -695,7 +644,7 @@ const Fusuma = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), useMap2=fals
       <Strut2 position={Vec3(position.x, position.y + texHalfHeight, position.z + 0.000000001)} scale={Vec3(scale.x * 1.045, 0.00025, 1)} />
       <Strut2 position={Vec3(position.x - texHalfWidth + 0.015, position.y, position.z + 0.000000001)} scale={Vec3(scale.y * 0.96, 0.00025, 1)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
       <WallPaper map={plaster} scale={Vec3(scale.x * 0.945, scale.y * 0.96, scale.z)} position={Vec3(position.x, position.y, position.z - 0.000000001)} />
-      <Backdrop map={hikite} position={Vec3(position.x + tex.image.width * dpr * scale.x * 0.4, position.y, 0.006)} scale={Vec3(0.000125, 0.000125, 1)} UVScale={Vec2(0.88,1)} greyScale={true} greyOffset={-0.2} useBackMap={false} backMap={plaster} antialias={true} alphaMinCutoff={0.1} />
+      <Backdrop map={hikite} position={Vec3(position.x + tex.image.width * dpr * scale.x * 0.4, position.y, 0.006)} scale={Vec3(0.000125, 0.000125, 1)} UVScale={Vec2(0.88,1)} greyScale={true} greyOffset={-0.2} useBackMap={false} backMap={plaster}  alphaMinCutoff={0.1} />
       <Strut2 position={Vec3(position.x + texHalfWidth - 0.015, position.y, position.z + 0.000000001)} scale={Vec3(scale.y * 0.96, 0.00025, 1)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
       <Strut2 position={Vec3(position.x, position.y - texHalfHeight, position.z + 0.000000001)} scale={Vec3(scale.x * 1.045, 0.00025, 1)} />
     </>
@@ -765,7 +714,7 @@ const WallPaper = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), renderOrd
 //   );
 // }
 
-const Backdrop = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), UVScale=Vec2(1, 1), UVOffset=Vec2(0,0), greyScale=false, greyOffset=0, greyRange=Vec2(0, 1.0), greyMinCutoff=0.0, greyMaxCutoff=1.0, alphaMinCutoff=0.0, alphaMaxCutoff=1.0, useBackMap=false, backMap=null, antialias=false, alphaRange=Vec2(0,1), renderOrder=0}) => {
+const Backdrop = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), UVScale=Vec2(1, 1), UVOffset=Vec2(0,0), RGBOffset=Vec3(0,0,0), greyScale=false, greyOffset=0, greyRange=Vec2(0, 1.0), greyMinCutoff=0.0, greyMaxCutoff=1.0, alphaMinCutoff=0.0, alphaMaxCutoff=1.0, useBackMap=false, backMap=null, antialias=false, alphaRange=Vec2(0,1), redRange=Vec2(0,1), greenRange=Vec2(0,1), blueRange=Vec2(0,1),  renderOrder=0}) => {
   const { gl } = useThree();
   const dpr = gl.getPixelRatio();
 
@@ -782,7 +731,7 @@ const Backdrop = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), UVScale=Ve
   return (
     <mesh position={position} scale={scale} renderOrder={renderOrder} >
       <planeGeometry args={[tex.image.width * dpr, tex.image.height * dpr]} />
-      <shaderMaterial args={[Shader({map: tex, UVScale:Vec2(UVScale.x, UVScale.y / (scale.x / scale.y)), UVOffset, greyScale, greyRange, greyOffset, greyMinCutoff, greyMaxCutoff, alphaMinCutoff, alphaMaxCutoff, alphaRange, useBackMap, backMap:backMapTex, antialias})]} wireframe={false} />
+      <shaderMaterial args={[Shader({map: tex, UVScale:Vec2(UVScale.x, UVScale.y / (scale.x / scale.y)), UVOffset, RGBOffset, greyScale, greyRange, greyOffset, greyMinCutoff, greyMaxCutoff, alphaMinCutoff, alphaMaxCutoff, alphaRange, useBackMap, backMap:backMapTex, antialias, redRange, greenRange, blueRange})]} wireframe={false} />
     </mesh>
   )
 
@@ -790,15 +739,30 @@ const Backdrop = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), UVScale=Ve
 
 const GLInterior = (props) => {
   const { camera } = useThree();
-  camera.aspect = 1.5978260869565217;
-  camera.fov = 50;
-  camera.far=2000;
-  console.log(`camera:`, camera);
-  // camera.lookAt(Vec3(11,0,0));
-  // camera.translateX(-1);
-  // camera.zoom = 2;
-  // camera.translateY(1);
-  // camera.rotateOnWorldAxis(Vec3(0,1,0),-(Math.PI / 4));
+  // console.log(`camera:`, camera);
+
+  camera.position.z = 5;
+  camera.position.y = 0;
+  camera.rotation.x = 0;
+  
+
+  let camAnimMixer, camPanXTrack, camPanYTrack, camPanZTrack, camRotXTrack, camZoomTrack, camAnimClip, camAnimAction;
+  camPanXTrack = new THREE.NumberKeyframeTrack('.position[x]',[0,16,20], [-15,5,0],THREE.InterpolateLinear);
+  camPanYTrack = new THREE.NumberKeyframeTrack('.position[y]',[0,16,23, 27], [2.95, 2.95, -0.4, 0],THREE.InterpolateLinear);
+  camPanZTrack = new THREE.NumberKeyframeTrack('.position[z]',[0,16,20, 27 ], [1.125, 1.125, 4, 5],THREE.InterpolateLinear);
+  camRotXTrack = new THREE.NumberKeyframeTrack('.rotation[x]',[0,16,20, 27 ], [0, 0, (Math.PI / 180 * 10), 0],THREE.InterpolateLinear);
+
+  // camZoomTrack = new THREE.NumberKeyframeTrack('.zoom',[0,10,11], [64,64,1], THREE.InterpolateSmooth);
+  camAnimClip = new THREE.AnimationClip('camAm',27,[camPanXTrack,camPanYTrack,camPanZTrack,camRotXTrack]);
+
+  camAnimMixer = new THREE.AnimationMixer(camera);
+  camAnimAction = camAnimMixer.clipAction(camAnimClip);
+  camAnimAction.setLoop(THREE.LoopOnce);
+  camAnimAction.play();
+
+  useFrame((state, delta) => {
+    camAnimMixer?.update(delta);
+  })
 
   return (
   <>
@@ -807,6 +771,10 @@ const GLInterior = (props) => {
     <Brace scale={Vec3(0.0021, -0.0012, 0.0001)} position={Vec3(1.6, -2.655, -5)} UVScale={Vec2(0.5,0.5)} greyOffset={-0.1} />
     <Post scale={Vec3(0.004,0.0013,1)} position={Vec3(3.8,-0.8,-6)} greyOffset={-0.12} />
     <Mat position={Vec3(3.1, -2.7, -7)} scale={Vec3(0.000925, 0.000925, 0.01)} rotation={Vec3(-90,0,-90)} rightTrim={false} greyOffset={-0.3} />
+    <Shoji position={Vec3(2.3, 1.8, -12.5)} scale={Vec3(1,0.65,1)} />
+    {/* <Backdrop map={gotama} position={Vec3(4.5,-0.2,-4)} scale={Vec3(0.00035, 0.00035, 1)} UVOffset={Vec2(0,0)} greyScale={false} greyRange={Vec2(0.7, 1.0)} alphaRange={Vec2(0.0,1)} UVScale={Vec2(1,1)} redRange={Vec2(0.0, 0.1)} greenRange={Vec2(0.0, 0.1)} blueRange={Vec2(0,0)} alphaMinCutoff={0.3} alphaMaxCutoff={1} RGBOffset={Vec3(0.0,0.0,0)} backMap={gotama} /> */}
+    <Backdrop map={gotama} position={Vec3(1.95,-2,-11)} scale={Vec3(0.0008, 0.0008, 1)} UVOffset={Vec2(0,0)} greyScale={true} greyOffset={-0.8} greyMinCutoff={0.0} greyMaxCuttoff={1.0} greyRange={Vec2(0.0, 1)} alphaRange={Vec2(0.0,1)} UVScale={Vec2(1,1)} alphaMinCutoff={0.4} alphaMaxCutoff={1} RGBOffset={Vec3(0.0,0.0,0)} backMap={gotama} />
+    {/* <Backdrop map={woodPanel1} position={Vec3(3, -0.2, 0)} scale={Vec3(0.0075, 0.00075, 1)} UVScale={Vec2(1, 1)} backMap={woodPanel1}/> */}
 
     <Brace scale={Vec3(0.0042, -0.0005, 1)} position={Vec3(3.59225,1.05,0)} renderOrder={45} />
     <Mat position={Vec3(3.56, -3.1, -1.176)} scale={Vec3(0.000925, 0.000925, 0.01)} rotation={Vec3(-90,0,-90)} rightTrim={true} />

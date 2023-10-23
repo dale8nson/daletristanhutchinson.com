@@ -2,10 +2,11 @@
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { Seo,Layout, GLHeader, GLInterior } from '../components';
 import './scss/_index.scss';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Slider, Label } from '@fluentui/react';
 import { Spinner } from '@nextui-org/react';
+import { useFrame } from '@react-three/fiber';
 
 const IndexPage = () => {
 
@@ -33,6 +34,8 @@ const IndexPage = () => {
   const onOYChange = (data) => {
     setOY(data);
   }
+
+  
 
   return (
     
