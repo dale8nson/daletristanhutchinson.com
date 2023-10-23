@@ -13,7 +13,8 @@ import plaster from '../assets/TCom_PlasterBare0143_1_seamless_M.jpeg'
 import ryouanji from '../assets/victor-lu-1EJX-rotoeg-unsplash.jpg';
 import hikite from '../assets/hikite.png';
 import gotama from '../assets/Gotama-edited.png';
-// import woodPanel1 from '../assets/TCom_WoodFine0082_3_seamless_M.jpeg'
+
+import woodPanel1 from '../assets/TCom_WoodFine0082_3_seamless_M.jpeg'
 
 const Vec2 = (n1 = null, n2 = null) => new THREE.Vector2 (n1, n2);
 const Vec3 = (n1 = null, n2 = null, n3 = null) => new THREE.Vector3(n1, n2, n3);
@@ -767,14 +768,14 @@ const GLInterior = (props) => {
   return (
   <>
     <Post scale={Vec3(0.004,0.0015,1)} position={Vec3(0.0,-0.8,0)} renderOrder={35} />
-    <WallPaper scale={Vec3(0.004205,0.0009,1)} position={Vec3(3.6, 1.65,0)} UVScale={Vec2(1, 1)} UVOffset={Vec2(0.2,0.01)} useMap2={true} map2UVScale={Vec2(2,0.25)} map2Scale={0.05} />
+    <WallPaper scale={Vec3(0.004205,0.0009,1)} position={Vec3(3.6, 1.6625,0)} UVScale={Vec2(1, 1)} UVOffset={Vec2(0.2,0.01)} useMap2={true} map2UVScale={Vec2(2,0.25)} map2Scale={0.05} />
     <Brace scale={Vec3(0.0021, -0.0012, 0.0001)} position={Vec3(1.6, -2.655, -5)} UVScale={Vec2(0.5,0.5)} greyOffset={-0.1} />
     <Post scale={Vec3(0.004,0.0013,1)} position={Vec3(3.8,-0.8,-6)} greyOffset={-0.12} />
     <Mat position={Vec3(3.1, -2.7, -7)} scale={Vec3(0.000925, 0.000925, 0.01)} rotation={Vec3(-90,0,-90)} rightTrim={false} greyOffset={-0.3} />
     <Shoji position={Vec3(2.3, 1.8, -12.5)} scale={Vec3(1,0.65,1)} />
     {/* <Backdrop map={gotama} position={Vec3(4.5,-0.2,-4)} scale={Vec3(0.00035, 0.00035, 1)} UVOffset={Vec2(0,0)} greyScale={false} greyRange={Vec2(0.7, 1.0)} alphaRange={Vec2(0.0,1)} UVScale={Vec2(1,1)} redRange={Vec2(0.0, 0.1)} greenRange={Vec2(0.0, 0.1)} blueRange={Vec2(0,0)} alphaMinCutoff={0.3} alphaMaxCutoff={1} RGBOffset={Vec3(0.0,0.0,0)} backMap={gotama} /> */}
     <Backdrop map={gotama} position={Vec3(1.95,-2,-11)} scale={Vec3(0.0008, 0.0008, 1)} UVOffset={Vec2(0,0)} greyScale={true} greyOffset={-0.8} greyMinCutoff={0.0} greyMaxCuttoff={1.0} greyRange={Vec2(0.0, 1)} alphaRange={Vec2(0.0,1)} UVScale={Vec2(1,1)} alphaMinCutoff={0.4} alphaMaxCutoff={1} RGBOffset={Vec3(0.0,0.0,0)} backMap={gotama} />
-    {/* <Backdrop map={woodPanel1} position={Vec3(3, -0.2, 0)} scale={Vec3(0.0075, 0.00075, 1)} UVScale={Vec2(1, 1)} backMap={woodPanel1}/> */}
+    <Backdrop map={woodPanel1} position={Vec3(6.1, -0.7, -6.25)} scale={Vec3(0.0015, 0.001575, 1)} UVScale={Vec2(0.9, 0.9)} backMap={woodPanel1} greyScale={true} greyOffset={-0.35}/>
 
     <Brace scale={Vec3(0.0042, -0.0005, 1)} position={Vec3(3.59225,1.05,0)} renderOrder={45} />
     <Mat position={Vec3(3.56, -3.1, -1.176)} scale={Vec3(0.000925, 0.000925, 0.01)} rotation={Vec3(-90,0,-90)} rightTrim={true} />
@@ -794,7 +795,7 @@ const GLInterior = (props) => {
     
     <Shoji position={Vec3(-5.75, 2, -5.5)} />
     
-    <Osaranma position={Vec3(-3.65, 1.4, -0.3)} />
+    <Osaranma position={Vec3(-3.65, 1.425, -0.3)} />
     
     <Brace scale={Vec3(0.0021, -0.0019, 0.0001)} position={Vec3(-1.925, -3.655, -3.85)} UVScale={Vec2(0.5,0.5)} />
     <Post scale={Vec3(0.005,0.0012,.0001)} position={Vec3(-3.459,-0.2,-3.85)} />
@@ -810,8 +811,8 @@ const GLInterior = (props) => {
     <Mat position={Vec3(-11.2055, -3.95, -0.78)} scale={Vec3(0.000925, 0.000925, 0.01)} />
     
     <Post scale={Vec3(0.005,0.0012,.0001)} position={Vec3(-3.725,-0.675,-1.65)} />
-    <Post scale={Vec3(0.0055,0.0017,1)} position={Vec3(-11.075,0.15,-5.55)}  />
-    <Post scale={Vec3(0.0055,0.0015,1)} position={Vec3(-10.975,0.27,-5.8)} rotation={new THREE.Euler(0, Math.PI / 2, (Math.PI / 2))} greyScale={true} greyOffset={-0.075} />
+    <Post scale={Vec3(0.00595,0.0017,1)} position={Vec3(-11.075,0.15,-5.55)}  />
+    <Post scale={Vec3(0.00595,0.0015,1)} position={Vec3(-10.975,0.27,-5.8)} rotation={new THREE.Euler(0, Math.PI / 2, (Math.PI / 2))} greyScale={true} greyOffset={-0.075} />
     <Brace scale={Vec3(0.0065,0.00075,1)} position={Vec3(-9,-3.95,-5.625)} rotation={new THREE.Euler(-(Math.PI / 2), 0, 0)} greyScale={true} greyOffset={-0.075} />
 
   </>

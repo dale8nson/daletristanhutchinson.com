@@ -458,12 +458,12 @@ const GLHeader = () => {
     
   return (
     <>
-      <mesh scale={[0.002075, 0.000675 / (bgTexture.image.width / bgTexture.image.height), 1]} position={[0,3,0]} renderOrder={1} name='bg' ref={(node) => setupBg(node)} onBeforeRender={bgBeforeRenderHandler} >
+      <mesh scale={[0.002075, 0.000675 / (bgTexture.image.width / bgTexture.image.height), 1]} position={[0,3,0.1]} renderOrder={1} name='bg' ref={(node) => setupBg(node)} onBeforeRender={bgBeforeRenderHandler} >
         <planeGeometry args={[bgTexture.image.width * dpr, bgTexture.image.height * dpr]} />
         <shaderMaterial args={[planeShader(bgTexture)]} uniforms-sX-value={2.125} uniforms-sY-value={2.125 / (bgTexture.image.width / bgTexture.image.height)} uniforms-oX-value={-0.4} uniforms-oY-value={0.17} />
       </mesh>
 
-      <mesh scale={[txtScale.x, txtScale.y, txtScale.z]} position={[-6.25,3.5,0.15]} onBeforeRender={txtBeforeRender} renderOrder={25}   oX={0} oY={0} rotation={[THREE.MathUtils.degToRad(9), 0, 0]}
+      <mesh scale={[txtScale.x, txtScale.y, txtScale.z]} position={[-6.25,3.5,0.24]} onBeforeRender={txtBeforeRender} renderOrder={25}   oX={0} oY={0} rotation={[THREE.MathUtils.degToRad(9), 0, 0]}
       ref={node => {
         if(node) {
           txtRef.current = node;
