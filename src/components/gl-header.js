@@ -149,6 +149,7 @@ const GLHeader = () => {
       coR: {value: 0.0 },
       coG: { value: 0.0},
       coB: { value: 0.0},
+      isNegative: {values: true},
       neg: { value: 0.0},
       sX: {value: 1.0},
       sY: {value: 1.0},
@@ -187,7 +188,8 @@ const GLHeader = () => {
       float glassScaleVec = intBitsToFloat(texSz.x) / intBitsToFloat(texSz.y);
     
       vec2 vScaled = vec2((vUv.x / size.x) * sX + oX, (vUv.y / size.y) * sY + oY);
-  
+      float redC, greenC, blueC;
+      
       vec4 bgCol = texture2D(bgTex, vScaled);
       vec4 fgCol = texture2D(map, vScaled);
 
@@ -216,8 +218,8 @@ const GLHeader = () => {
       green = 1.0 - bgCol.g + 0.0 * (bgCol.g > 0.5 ? -0.1 : 0.2)  - redOffset;        // + 0.2 == matcha    r + g = orange
       blue = 1.0 -  bgCol.b + 0.0 * (bgCol.b > 0.5 ? -0.1 : 0.2) - redOffset;
     
-      float redC, greenC, blueC;
-
+      
+      
       redC = 1.0 - bgCol.r;
       greenC = 1.0 - bgCol.g;
       blueC = 1.0 - bgCol.b;
