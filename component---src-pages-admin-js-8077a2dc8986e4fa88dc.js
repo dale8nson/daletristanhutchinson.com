@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkdale_tristan_hutchinson=self.webpackChunkdale_tristan_hutchinson||[]).push([[181],{7921:function(t,n,e){e.r(n),e.d(n,{Head:function(){return a}});e(7294);var s=e(2568),u=e(2695);n.default=()=>(0,u.tZ)(s.lq,{});const a=()=>(0,u.tZ)(s.pQ,{title:"Admin"})}}]);
+//# sourceMappingURL=component---src-pages-admin-js-8077a2dc8986e4fa88dc.js.map
