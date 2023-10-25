@@ -15,6 +15,10 @@ const Vec4 = (n1 = null, n2 = null, n3 = null, n4 = null) => new THREE.Vector4(n
 
 const headerHeightScale = 0.1;
 
+const screenToWorld = (sX, sY) => {
+
+}
+
 
 const GLHeader = () => {
   const { gl, camera } = useThree();
@@ -31,9 +35,10 @@ const GLHeader = () => {
   const viewPort = Vec4();
   gl.getViewport(viewPort);
   console.log(`viewPort:`, viewPort);
+  console.log(`dpr: ${dpr}`);
 
   const txtScale = Vec3(0.0775, -0.055,1.7);
-
+// let txtScale;
 
   const glassTex = useLoader(THREE.TextureLoader, glass);
   glassTex.wrapS = glassTex.wrapT = THREE.MirroredRepeatWrapping;
@@ -160,12 +165,14 @@ const GLHeader = () => {
     vertexShader: `
   
     varying vec2 vUv;
+    varying vec4 pos;
   
     void main(void) {
       
       vUv = uv;
+      pos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      gl_Position = pos;
   
   }`,
   
@@ -181,6 +188,7 @@ const GLHeader = () => {
     uniform vec2 size;
   
     varying vec2 vUv;
+    varying vec4 pos;
     
     void main()
     {
@@ -190,8 +198,13 @@ const GLHeader = () => {
       vec2 vScaled = vec2((vUv.x / size.x) * sX + oX, (vUv.y / size.y) * sY + oY);
       float redC, greenC, blueC;
       
-      vec4 bgCol = texture2D(bgTex, vScaled);
-      vec4 fgCol = texture2D(map, vScaled);
+      // vec4 bgCol = texture2D(bgTex, vScaled);
+      // vec4 fgCol = texture2D(map, vScaled);
+
+      vec2 scaled = vec2(vUv.x * sX + oX, vUv.y * sY + oY);
+
+      vec4 bgCol = texture2D(bgTex, scaled );
+      vec4 fgCol = texture2D(map, scaled );
 
       vec2 glassScaled = vec2((vUv.x / intBitsToFloat(texSz.x)) * 1.0, (vUv.y / intBitsToFloat(texSz.y)) * (1.0 / glassScaleVec));
       // vec2 glassScaled = vec2(vUv.x * 8.0 , vUv.y * 1.0);
@@ -217,8 +230,6 @@ const GLHeader = () => {
       red = 1.0 - bgCol.r + 0.0 * (bgCol.r > 0.5 ? -0.1 : 0.2) + redOffset ;          // + 0.5 == sakura
       green = 1.0 - bgCol.g + 0.0 * (bgCol.g > 0.5 ? -0.1 : 0.2)  - redOffset;        // + 0.2 == matcha    r + g = orange
       blue = 1.0 -  bgCol.b + 0.0 * (bgCol.b > 0.5 ? -0.1 : 0.2) - redOffset;
-    
-      
       
       redC = 1.0 - bgCol.r;
       greenC = 1.0 - bgCol.g;
@@ -236,9 +247,9 @@ const GLHeader = () => {
       greenIncr = 0.1 * greenCDiff;
       blueIncr = 0.1 * blueCDiff;
 
-      red = fgCol.r + redIncr;
-      green = fgCol.g + greenIncr;
-      blue = fgCol.b + blueIncr;
+      // red = fgCol.r + redIncr;
+      // green = fgCol.g + greenIncr;
+      // blue = fgCol.b + blueIncr;
 
       if (glassCol.r > 0.2) {
         red -= glassCol.r * 0.3;
@@ -247,8 +258,11 @@ const GLHeader = () => {
         // alpha -= 1.0 - glassCol.r;
         // discard;
       }
+      red = 1.0 - fgCol.r + 0.025;
+      green = 1.0 - fgCol.g + 0.025;
+      blue = 1.0 - fgCol.b + 0.025;
 
-      gl_FragColor = vec4(redC, greenC, blueC, alpha);
+      gl_FragColor = vec4(red, green, blue, alpha);
       // gl_FragColor = vec4(0.933, 0.0, 0.0, neg);
   
     }`
@@ -267,7 +281,7 @@ const GLHeader = () => {
     // const bgFramebufferTex = new THREE.FramebufferTexture(bgTexture.image.width, bgTexture.image.height);
     const bgFramebufferTex = useMemo(() => {
       
-    const tex = new THREE.FramebufferTexture(size.width, headerHeightScale * size.width);
+    const tex = new THREE.FramebufferTexture(size.width * dpr, size.width * dpr);
     // const tex = new THREE.FramebufferTexture(bgTexture.image.width * 0.0014, bgTexture.image.height * 0.000336 / (bgTexture.image.width / bgTexture.image.height));
     tex.format = THREE.RGBAFormat;
     tex.wrapS = THREE.RepeatWrapping;
@@ -322,7 +336,7 @@ const GLHeader = () => {
     // gl.setRenderTarget(null);
     // console.log(`textRenderTarget.texture:`, textRenderTarget.texture);
     
-    const bgFramebufferOffset = useMemo(() => new THREE.Vector2(0,(size.height * dpr - bgFramebufferTex.image.height)), [bgFramebufferTex.image.height, size.height]);
+    const bgFramebufferOffset = useMemo(() => new THREE.Vector2(0,(size.height * dpr - bgFramebufferTex.image.height * headerHeightScale / (camera.position.z / (5 - 1.25))), [bgFramebufferTex.image.height, size.height]));
 
     const bgBeforeRenderHandler = (renderer, scene, camera, geometry, material, group) => {
     //   if(!material || !material.isShaderMaterial) return;
@@ -357,8 +371,6 @@ const GLHeader = () => {
     bgAnimClip = useMemo(() => new THREE.AnimationClip('BgPan', 70, [panKeyframeTrack, textNegKeyframeTrack, textCoRTrack]), [panKeyframeTrack]);
     // bgAnimClip = new THREE.AnimationClip('BgPan', 70, [panKeyframeTrack]);
 
-
-    
     const setupBg = (node) => {
       if(!node) return;
       bgRef.current = node;
@@ -472,7 +484,6 @@ const GLHeader = () => {
           console.log(sz);
           txtRef.current.material.uniforms.size.value = sz;
 
-
           console.log(txtRef.current);
           }
         }} >
@@ -485,7 +496,8 @@ const GLHeader = () => {
         bevelSegments: 3,
         bevelEnabled: false
       }]} ref={console.log} />
-        <shaderMaterial args={[{...textShader(bgTexture, bgFramebufferTex), transparent: true, wireframe:false}]} uniforms-sX-value={8} uniforms-sY-value={8 / (txtScale.x / txtScale.y)} uniforms-oX-value={oX.current} uniforms-oY-value={0}  />
+        {/* <shaderMaterial args={[{...textShader(bgTexture, bgFramebufferTex), transparent: true, wireframe:false}]} uniforms-sX-value={0.125} uniforms-sY-value={0.002 / (bgFramebufferTex.image.width / bgFramebufferTex.image.height * headerHeightScale)} uniforms-oX-value={oX.current + 0.5} uniforms-oY-value={0}  /> */}
+        <shaderMaterial args={[{...textShader(bgTexture, bgFramebufferTex), transparent: true, wireframe:false}]} uniforms-sX-value={.001625 / camera.position.z / 5} uniforms-sY-value={0.0037 / (bgFramebufferTex.image.width / bgFramebufferTex.image.height)} uniforms-oX-value={-bgRef.current?.oX * camera.position.z / 5 || 0} uniforms-oY-value={0}  />
       </mesh>
     </> 
   );} 

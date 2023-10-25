@@ -13,8 +13,8 @@ import plaster from '../assets/TCom_PlasterBare0143_1_seamless_M.jpeg'
 import ryouanji from '../assets/victor-lu-1EJX-rotoeg-unsplash.jpg';
 import hikite from '../assets/hikite.png';
 import gotama from '../assets/Gotama-edited.png';
-
-import woodPanel1 from '../assets/TCom_WoodFine0082_3_seamless_M.jpeg'
+import woodPanel1 from '../assets/TCom_WoodFine0082_3_seamless_M.jpeg';
+import planks from '../assets/TCom_Wood_PlanksTemple2_2x2_512_albedo.png';
 
 const Vec2 = (n1 = null, n2 = null) => new THREE.Vector2 (n1, n2);
 const Vec3 = (n1 = null, n2 = null, n3 = null) => new THREE.Vector3(n1, n2, n3);
@@ -242,57 +242,6 @@ const woodMaterial = (color = new THREE.Vector4(1.0, 1.0, 1.0, 1.0)) => {
         float maxColorValue = 255.0;
         float offset = mod(xy, modulus) / maxColorValue;
         gl_FragColor = vec4(0.8, 0.8, 0.8, 1.0);
-      }
-    `
-  }
-}
-
-const brightnessMaterial = (map, factor=1.0, viewPort=ZERO_VEC_2, texSize=ZERO_VEC_2) => { 
-  return {
-    uniforms: {
-      map: { value: map },
-      factor: {value: factor},
-      viewPort: {value: viewPort},
-      texSize: {value: texSize}
-    },
-    vertexShader: `
-      
-      varying vec2 vUv;
-      
-      void main() {
-
-        vUv = uv;
-
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-
-      }
-    `,
-    fragmentShader: `
-
-      uniform sampler2D map;
-      uniform float factor;
-      uniform vec2 texSize;
-      uniform vec2 viewPort;
-
-      in vec2 vUv;
-
-      void main()
-      {
-
-        float normalX = (viewPort.x - fragCoord.x) / texSize.x;
-        float normalY = (viewPort.y - fragCoord.y) / texSize.y;
-
-        vec2 normalUv = vec2(normalX, normalY); 
-
-        vec4 color = texture2D(map, normalUv);
-
-        float red = color.r * color.a * factor;
-        float green = color.g * color.a * factor;
-        float blue = color.b * color.a * factor;
-
-        
-        
-        gl_FragColor = vec4(red, green, blue, 1.0);
       }
     `
   }
@@ -670,7 +619,7 @@ const SvgMesh = ({svg, position = ZERO_VEC_2, scale=ONE_VEC_3, color=ONE_VEC_3})
   return <>{meshes}</>;
 };
 
-const WallPaper = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), renderOrder, UVScale=Vec2(1,1), UVOffset=Vec2(1,1), useMap2=false, map2=null, map2UVScale=Vec2(1,1), map2Scale=0.0}) => {
+const WallPaper = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), renderOrder, UVScale=Vec2(1,1), UVOffset=Vec2(1,1), useMap2=false, map2=null, map2UVScale=Vec2(1,1), map2Scale=0.0, rotation=new THREE.Euler(0,0,0)}) => {
   const { gl } = useThree();
   const dpr = gl.getPixelRatio();
 
@@ -684,7 +633,7 @@ const WallPaper = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), renderOrd
   map2Tex.wrapS = map2Tex.wrapT = THREE.MirroredRepeatWrapping;
 
   return (
-    <mesh scale={[scale.x,scale.y,scale.z]} position={[position.x, position.y, position.z]} renderOrder={renderOrder} >
+    <mesh scale={[scale.x,scale.y,scale.z]} position={[position.x, position.y, position.z]} rotation={rotation} renderOrder={renderOrder} >
       <planeGeometry args={[texSize.x * dpr, texSize.y * dpr]} />
       <shaderMaterial args={[Shader({map:tex, UVScale:Vec2(UVScale.x, UVScale.y / (scale.x / scale.y)), UVOffset, RGBOffset:Vec3(0.3, 0.3, 0.3), greyScale: false, alphaRange:Vec2(0.1, 0.35), alphaMinCutoff:0.0, alphaMaxCutoff:1, greyOffset:-0.1, useMap2, map2: map2Tex, map2UVScale, map2Scale})]} wireframe={false} />
     </mesh>
@@ -715,7 +664,7 @@ const WallPaper = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), renderOrd
 //   );
 // }
 
-const Backdrop = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), UVScale=Vec2(1, 1), UVOffset=Vec2(0,0), RGBOffset=Vec3(0,0,0), greyScale=false, greyOffset=0, greyRange=Vec2(0, 1.0), greyMinCutoff=0.0, greyMaxCutoff=1.0, alphaMinCutoff=0.0, alphaMaxCutoff=1.0, useBackMap=false, backMap=null, antialias=false, alphaRange=Vec2(0,1), redRange=Vec2(0,1), greenRange=Vec2(0,1), blueRange=Vec2(0,1),  renderOrder=0}) => {
+const Backdrop = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), rotation=new THREE.Euler(0,0,0), UVScale=Vec2(1, 1), UVOffset=Vec2(0,0), RGBOffset=Vec3(0,0,0), greyScale=false, greyOffset=0, greyRange=Vec2(0, 1.0), greyMinCutoff=0.0, greyMaxCutoff=1.0, alphaMinCutoff=0.0, alphaMaxCutoff=1.0, useBackMap=false, backMap=null, antialias=false, alphaRange=Vec2(0,1), redRange=Vec2(0,1), greenRange=Vec2(0,1), blueRange=Vec2(0,1),  renderOrder=0}) => {
   const { gl } = useThree();
   const dpr = gl.getPixelRatio();
 
@@ -730,7 +679,7 @@ const Backdrop = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), UVScale=Ve
   console.log(`backMapTex:`, backMapTex);
 
   return (
-    <mesh position={position} scale={scale} renderOrder={renderOrder} >
+    <mesh position={position} scale={scale} rotation={rotation} renderOrder={renderOrder} >
       <planeGeometry args={[tex.image.width * dpr, tex.image.height * dpr]} />
       <shaderMaterial args={[Shader({map: tex, UVScale:Vec2(UVScale.x, UVScale.y / (scale.x / scale.y)), UVOffset, RGBOffset, greyScale, greyRange, greyOffset, greyMinCutoff, greyMaxCutoff, alphaMinCutoff, alphaMaxCutoff, alphaRange, useBackMap, backMap:backMapTex, antialias, redRange, greenRange, blueRange})]} wireframe={false} />
     </mesh>
@@ -742,10 +691,18 @@ const GLInterior = (props) => {
   const { camera } = useThree();
   // console.log(`camera:`, camera);
 
+  camera.position.z = -2.5;
+  camera.position.y = -3.5;
+  camera.position.x = -7;
+  // camera.rotation.y = (Math.PI / 180 * 90);
+  camera.rotation.x = (Math.PI / 180 * 90);
+
   camera.position.z = 5;
   camera.position.y = 0;
+  camera.position.x = 0;
+  camera.rotation.y = 0;
   camera.rotation.x = 0;
-  
+
 
   let camAnimMixer, camPanXTrack, camPanYTrack, camPanZTrack, camRotXTrack, camZoomTrack, camAnimClip, camAnimAction;
   camPanXTrack = new THREE.NumberKeyframeTrack('.position[x]',[0,16,20], [-15,5,0],THREE.InterpolateLinear);
@@ -767,15 +724,18 @@ const GLInterior = (props) => {
 
   return (
   <>
+    <Backdrop map={planks} position={Vec3(-9,3,-2.49)} scale={Vec3(.02,.005,1)} rotation={new THREE.Euler((Math.PI / 2), 0, 0)} UVScale={Vec2(4, 4)} backMap={planks} greyScale={true} />
+
     <Post scale={Vec3(0.004,0.0015,1)} position={Vec3(0.0,-0.8,0)} renderOrder={35} />
     <WallPaper scale={Vec3(0.004205,0.0009,1)} position={Vec3(3.6, 1.6625,0)} UVScale={Vec2(1, 1)} UVOffset={Vec2(0.2,0.01)} useMap2={true} map2UVScale={Vec2(2,0.25)} map2Scale={0.05} />
-    <Brace scale={Vec3(0.0021, -0.0012, 0.0001)} position={Vec3(1.6, -2.655, -5)} UVScale={Vec2(0.5,0.5)} greyOffset={-0.1} />
+    <Brace scale={Vec3(0.0025, -0.0012, 0.0001)} position={Vec3(1.725, -3.025, -6)} UVScale={Vec2(0.5,0.5)} greyOffset={-0.1} />
     <Post scale={Vec3(0.004,0.0013,1)} position={Vec3(3.8,-0.8,-6)} greyOffset={-0.12} />
-    <Mat position={Vec3(3.1, -2.7, -7)} scale={Vec3(0.000925, 0.000925, 0.01)} rotation={Vec3(-90,0,-90)} rightTrim={false} greyOffset={-0.3} />
+    <Mat position={Vec3(3.1, -2.95, -7)} scale={Vec3(0.000925, 0.000925, 0.01)} rotation={Vec3(-90,0,-90)} rightTrim={false} greyOffset={-0.3} />
     <Shoji position={Vec3(2.3, 1.8, -12.5)} scale={Vec3(1,0.65,1)} />
     {/* <Backdrop map={gotama} position={Vec3(4.5,-0.2,-4)} scale={Vec3(0.00035, 0.00035, 1)} UVOffset={Vec2(0,0)} greyScale={false} greyRange={Vec2(0.7, 1.0)} alphaRange={Vec2(0.0,1)} UVScale={Vec2(1,1)} redRange={Vec2(0.0, 0.1)} greenRange={Vec2(0.0, 0.1)} blueRange={Vec2(0,0)} alphaMinCutoff={0.3} alphaMaxCutoff={1} RGBOffset={Vec3(0.0,0.0,0)} backMap={gotama} /> */}
-    <Backdrop map={gotama} position={Vec3(1.95,-2,-11)} scale={Vec3(0.0008, 0.0008, 1)} UVOffset={Vec2(0,0)} greyScale={true} greyOffset={-0.8} greyMinCutoff={0.0} greyMaxCuttoff={1.0} greyRange={Vec2(0.0, 1)} alphaRange={Vec2(0.0,1)} UVScale={Vec2(1,1)} alphaMinCutoff={0.4} alphaMaxCutoff={1} RGBOffset={Vec3(0.0,0.0,0)} backMap={gotama} />
-    <Backdrop map={woodPanel1} position={Vec3(6.1, -0.7, -6.25)} scale={Vec3(0.0015, 0.001575, 1)} UVScale={Vec2(0.9, 0.9)} backMap={woodPanel1} greyScale={true} greyOffset={-0.35}/>
+   
+    <Backdrop map={gotama} position={Vec3(1.95,-2.25,-11)} scale={Vec3(0.0008, 0.0008, 1)} UVOffset={Vec2(0,0)} greyScale={true} greyOffset={-0.8} greyMinCutoff={0.0} greyMaxCuttoff={1.0} greyRange={Vec2(0.0, 1)} alphaRange={Vec2(0.0,1)} UVScale={Vec2(1,1)} alphaMinCutoff={0.4} alphaMaxCutoff={1} RGBOffset={Vec3(0.0,0.0,0)} backMap={gotama} />
+    <Backdrop map={woodPanel1} position={Vec3(6.15, -0.7, -6.25)} scale={Vec3(0.0015, 0.00175, 1)} UVScale={Vec2(0.875, 0.875)} backMap={woodPanel1} greyScale={true} greyOffset={-0.35}/>
 
     <Brace scale={Vec3(0.0042, -0.0005, 1)} position={Vec3(3.59225,1.05,0)} renderOrder={45} />
     <Mat position={Vec3(3.56, -3.1, -1.176)} scale={Vec3(0.000925, 0.000925, 0.01)} rotation={Vec3(-90,0,-90)} rightTrim={true} />
@@ -792,14 +752,15 @@ const GLInterior = (props) => {
     <WallPaper map={paper} position={Vec3(-9.3,3.38,-5.775)} scale={Vec3(0.00325,0.0009,1)} UVOffset={Vec2(0.2,0.01)} renderOrder={5} />
     <Backdrop map={ryouanji} position={Vec3(-10.5,-1,-5.9)} scale={Vec3(0.0010,0.0012,1)} UVScale={Vec2(0.8, 0.8)} UVOffset={Vec2(0.33, 0)} greyScale={true} greyRange={Vec2(0.0, 0.7)} backMap={ryouanji} />
     <Brace scale={Vec3(0.0065,0.00075,1)} position={Vec3(-9.3,1.8,-5.63)} rotation={new THREE.Euler(0, 0, 0)} greyScale={true} greyOffset={-0.075} />
-    
+    <WallPaper map={plaster} position={Vec3(-0.2,0,-5.75)} scale={Vec3(0.00365,0.002,1)} rotation={new THREE.Euler(0,Math.PI / 2, 0)} UVOffset={Vec2(0.2,0.01)} renderOrder={5} />
+
     <Shoji position={Vec3(-5.75, 2, -5.5)} />
     
-    <Osaranma position={Vec3(-3.65, 1.425, -0.3)} />
+    <Osaranma position={Vec3(-3.65, 1.43, -0.3)} />
     
     <Brace scale={Vec3(0.0021, -0.0019, 0.0001)} position={Vec3(-1.925, -3.655, -3.85)} UVScale={Vec2(0.5,0.5)} />
     <Post scale={Vec3(0.005,0.0012,.0001)} position={Vec3(-3.459,-0.2,-3.85)} />
-    <WallPaper scale={Vec3(0.0021025,0.006575,1)} position={Vec3(-1.6, 0.58,-3.85)} UVScale={Vec2(1,1)} UVOffset={Vec2(0.2,0.01)} useMap2={true} map2UVScale={Vec2(1,1)} map2Scale={0.05} />
+    <WallPaper scale={Vec3(0.002,0.006575,1)} position={Vec3(-1.8, 0.58,-3.851)} UVScale={Vec2(1,1)} UVOffset={Vec2(0.2,0.01)} useMap2={true} map2UVScale={Vec2(1,1)} map2Scale={0.05} />
     <Mat position={Vec3(-0.5, -3.12, -2.075)} scale={Vec3(0.000975, 0.0006975, 0.01)} sizeX={3} sizeY={0} trimColorOffset={0.15} />
     <Brace scale={Vec3(0.002075,0.000375,1)} position={Vec3(-1.88,-0.09,-1.651)} rotation={new THREE.Euler(0, 0, 0)} greyScale={true} greyOffset={-0.075} />
     <WallPaper map={plaster} scale={Vec3(0.00105125,0.00095,1)} position={Vec3(-1.9, 1.4,-1.652)} UVScale={Vec2(1,1)} UVOffset={Vec2(0.2,0.01)} useMap2={false} map2UVScale={Vec2(1,1)} map2Scale={0.05} />
