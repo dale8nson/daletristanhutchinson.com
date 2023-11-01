@@ -2,7 +2,7 @@ import  { useRef, useEffect } from 'react';
 import * as React from 'react';
 import Paths from '../images/dth-paths.svg';
 import paintMask from '../images/paint-mask.png';
-import './scss/_dale-tristan-hutchinson.scss';
+// import './scss/_dale-tristan-hutchinson.scss';
 
 const DaleTristanHutchinson = ({className, onAnimationEnd}) => {
   const pathsRef = useRef(null);

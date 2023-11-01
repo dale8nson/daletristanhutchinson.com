@@ -4,7 +4,7 @@ import { TabList, Tab, FluentProvider } from '@fluentui/react-components';
 import { Notes, Library, Articles, Site, Layout } from './index.js';
 
 import { dThTheme } from '../themes';
-import './scss/_admin-layout.scss';
+// import './scss/_admin-layout.scss';
 const DEBUG = false;
 DEBUG && console.log(`admin-layout.js: Layout: \n${Object.entries(Layout).map(entry => entry.join(':\t')).join('\n')}`);
 

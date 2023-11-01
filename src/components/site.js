@@ -2,7 +2,7 @@ import * as React from 'react';
 // import parse from 'html-react-parser';
 // import { useStaticQuery, graphql } from 'gatsby';
 // import Header from './header';
-import './scss/_site.scss';
+// import './scss/_site.scss';
 
 const Site = React.memo(() => {
     // const siteData = useStaticQuery(graphql`query MyQuery {

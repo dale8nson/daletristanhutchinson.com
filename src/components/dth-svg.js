@@ -1,5 +1,5 @@
 import {forwardRef} from 'react';
-import './scss/_dale-tristan-hutchinson.scss';
+// import './scss/_dale-tristan-hutchinson.scss';
 
 const DaleTristanHutchinson = forwardRef(({className, onAnimationStart, onAnimationEnd}, ref) => {
 

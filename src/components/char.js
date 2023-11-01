@@ -1,6 +1,6 @@
 import * as React from 'react';
-import '../assets/scss/_fonts.scss';
-import './scss/_char.scss';
+// import '../assets/scss/_fonts.scss';
+// import './scss/_char.scss';
 
 const Char = ({as, char, font, className, charStyle }) => {
   const style = {

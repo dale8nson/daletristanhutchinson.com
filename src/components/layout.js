@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {LargeTitle} from '@fluentui/react-components';
 
-import './scss/_layout.scss';
+// import './scss/_layout.scss';
 
 const DEBUG = false;
 const Layout = (props) => {

@@ -1,6 +1,9 @@
 /**
  * @type {import('gatsby').GatsbyConfig}
  */
+
+const path = require('path');
+
 module.exports = {
   siteMetadata: {
     title: `Dale Tristan Hutchinson`,
@@ -12,23 +15,36 @@ module.exports = {
   plugins: [
   "gatsby-plugin-image", 
   "gatsby-plugin-sharp", 
+  "gatsby-plugin-postcss",
   "gatsby-transformer-sharp", 
   "gatsby-plugin-sass", 
   // "gatsby-plugin-mdx", 
   "gatsby-plugin-typescript",
+
   {
     resolve: 'gatsby-source-filesystem',
     options: {
       "name": "images",
-      "path": "./src/images/"
+      "path": path.join(__dirname, "src", "images")
+    },
+    resolve: 'gatsby-source-filesystem',
+    options: {
+      "name": "assets",
+      "path": path.join(__dirname,"src","assets")
     },
     __key: "images"
   }, {
     resolve: 'gatsby-source-filesystem',
     options: {
       "name": "pages",
-      "path": "./src/pages/"
+      "path": path.join(__dirname, "src", "pages")
     },
+    resolve: `gatsby-plugin-purgecss`,
+      options: {
+        printRejected: false,
+        develop: false,
+        tailwind: true,
+      },
     __key: "pages"
   }, //{
   //   resolve: 'gatsby-source-filesystem',

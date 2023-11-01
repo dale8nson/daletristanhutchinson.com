@@ -1,5 +1,5 @@
 import  DeiruLogo  from '../images/deiru-logo.svg';
-import './scss/_deiru.scss';
+// import './scss/_deiru.scss';
 
 const DEBUG = false;
 

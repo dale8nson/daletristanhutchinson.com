@@ -16,6 +16,9 @@ import ParallaxImage from './parallax-image';
 import DaleTristanHutchinson from './dth-svg';
 import GLHeader from './gl-header';
 import GLInterior from './gl-interior';
+import WebGLCanvas from './webgl-canvas';
+import Enso from './enso';
+import MainMenu from './main-menu';
 
 
 export {
@@ -34,6 +37,9 @@ export {
   DaleTristanHutchinson,
   ParallaxImage,
   // Zen3D,
+  WebGLCanvas,
   GLHeader,
-  GLInterior
+  GLInterior,
+  Enso,
+  MainMenu
 };

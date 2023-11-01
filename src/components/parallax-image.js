@@ -1,5 +1,5 @@
 import * as React from 'react';
-import './scss/_parallax-image.scss';
+// import './scss/_parallax-image.scss';
 
 const ParallaxImage = ({src, className}) => {
   const style = {

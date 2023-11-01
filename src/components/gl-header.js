@@ -1,12 +1,14 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, Suspense } from 'react';
+import { Spinner } from '@nextui-org/react';
+
 import * as THREE from 'three';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import bg from '../assets/zen-panorama-bg-cropped.webp';
-import './scss/_gl-header.scss';
+// import './scss/_gl-header.scss';
 import SVG from '../assets/dth-union2.svg';
 import glass from '../assets/Texturelabs_Glass_154L.jpg';
 import {useLoader, useThree, useFrame } from '@react-three/fiber';
-// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils';
 // import { Slider, Label } from '@fluentui/react';
 
 const Vec2 = (n1 = null, n2 = null) => new THREE.Vector2 (n1, n2);
@@ -65,6 +67,7 @@ const GLHeader = () => {
       uniforms: {
         bgTex: { value: bgTex },
         glassMap: {value: glassTex},
+        alpha: { value: 1.0 },
         x: {value: 0.0},
         sX: { value: 1.0 },
         sY: { value: 1.0 },
@@ -101,7 +104,7 @@ const GLHeader = () => {
     uniform float sX, sY;
     uniform float oX, oY;
     uniform float x, neg;
-    uniform float coR, coG, coB;
+    uniform float coR, coG, coB, alpha;
   
     varying vec2 vUv;
     varying vec4 pos;
@@ -110,7 +113,7 @@ const GLHeader = () => {
     void main()
 
     {
-      float alpha = 1.0;
+      // float alpha = 1.0;
       ivec2 texSz = textureSize(bgTex, 0);
       float texScale = intBitsToFloat(texSz.x) / intBitsToFloat(texSz.y);
       ivec2 glassTexSz = textureSize(glassMap, 0);
@@ -127,15 +130,15 @@ const GLHeader = () => {
       float blue = bgCol.b - neg * (bgCol.b - (1.0 - bgCol.b)) + coB;
 
       if (glassCol.r > 0.2) {
-        red -= glassCol.r * 0.2;
-        green -= glassCol.g * 0.2;
-        blue -= glassCol.b * 0.2;
+        red -= glassCol.r * 0.2 + (1.0 - alpha);
+        green -= glassCol.g * 0.2 + (1.0 - alpha);
+        blue -= glassCol.b * 0.2 + (1.0 - alpha);
 
         // alpha = glassCol.r * 0.8;
         // discard;
       }
   
-      gl_FragColor = vec4(red, green, blue, alpha);
+      gl_FragColor = vec4(red, green, blue, 1.0);
       // gl_FragColor = vec4(0.93, 0.0, 0.0, 0.5);
   
     }`,
@@ -151,6 +154,7 @@ const GLHeader = () => {
       map: { value: map},
       glassMap: { value: glassTex},
       size: { value: null},
+      alpha: { value: 1.0},
       coR: {value: 0.0 },
       coG: { value: 0.0},
       coB: { value: 0.0},
@@ -184,7 +188,7 @@ const GLHeader = () => {
     uniform float sX, sY, x;
     uniform float oX, oY;
     uniform float neg;
-    uniform float coR, coG, coB;
+    uniform float coR, coG, coB, alpha;
     uniform vec2 size;
   
     varying vec2 vUv;
@@ -211,9 +215,7 @@ const GLHeader = () => {
 
       vec4 glassCol = texture2D(glassMap, glassScaled);
   
-      float red, green, blue, alpha;
-
-      alpha = 1.0;
+      float red, green, blue;
   
       // if (fgCol.r < 0.01) {
       //   discard;
@@ -363,12 +365,14 @@ const GLHeader = () => {
       // console.log(`txtRef.current:`, txtRef.current);
     }
 
-    let bgAnimMixer, bgPanAction, panKeyframeTrack, bgAnimClip;
+    let bgAnimMixer, bgPanAction, panKeyframeTrack, alphaTrack, bgAnimClip;
     panKeyframeTrack = useMemo(() => new THREE.NumberKeyframeTrack('.oX',[0,30, 40, 70], [0,0.5,0.5,0], THREE.InterpolateSmooth), []);
     // panKeyframeTrack = new THREE.NumberKeyframeTrack('.oX',[0,35,70], [0,1.5,0], THREE.InterpolateSmooth);
     const textNegKeyframeTrack = useMemo(() => new THREE.NumberKeyframeTrack('.neg', [0, 17.5, 35, 52.5, 70], [0.0, 1.0, 0.0, 1.0, 0.0], THREE.InterpolateSmooth), []);
     const textCoRTrack = useMemo(() => new THREE.NumberKeyframeTrack('.coR', [0, 17.5, 35, 52.5, 70], [0.0, 0.5, 0.0, 0.5, 0.0]), []);
-    bgAnimClip = useMemo(() => new THREE.AnimationClip('BgPan', 70, [panKeyframeTrack, textNegKeyframeTrack, textCoRTrack]), [panKeyframeTrack]);
+    alphaTrack = useMemo(() => new THREE.NumberKeyframeTrack('.alpha', [0,6], [0.0,1]), []);
+
+    bgAnimClip = useMemo(() => new THREE.AnimationClip('BgPan', 70, [panKeyframeTrack, textNegKeyframeTrack, textCoRTrack, alphaTrack]), [panKeyframeTrack]);
     // bgAnimClip = new THREE.AnimationClip('BgPan', 70, [panKeyframeTrack]);
 
     const setupBg = (node) => {
@@ -401,12 +405,17 @@ const GLHeader = () => {
             get() { return this.material.uniforms.coB.value; },
             set(value) { this.material.uniforms.coB.value = value; }
           });
+
+          Object.defineProperty(refNode, 'alpha', {
+            get() { return this.material.uniforms.alpha.value; },
+            set(value) { this.material.uniforms.alpha.value = value; }
+          });
         }
         
         console.log(`bgRef.current:`, bgRef.current)
         bgAnimMixer = new THREE.AnimationMixer(bgRef.current);
         bgPanAction = bgAnimMixer.clipAction(bgAnimClip);
-        textPanAction = bgAnimMixer.clipAction(bgAnimClip);
+        // textPanAction = bgAnimMixer.clipAction(bgAnimClip);
         bgPanAction.play();
         // setupMg(bgRef.current);
         // console.log(`bgPanAction:`, bgPanAction);
@@ -419,7 +428,8 @@ const GLHeader = () => {
     const textCoBTrack = useMemo(() => new THREE.NumberKeyframeTrack('.coB', [0, 17.5, 35, 52.5, 70], [0.4, 1.0, 1.0, 0.4, 0.4]), []);
     const textPanKeyframeTrack = useMemo(() => new THREE.NumberKeyframeTrack('.oX',[0,30,60], [1,0,1]), []);
 
-    textAnimClip = useMemo(() => new THREE.AnimationClip('TextPan', 70, [textNegKeyframeTrack, textCoRTrack]), [textNegKeyframeTrack, textCoRTrack]);
+
+    textAnimClip = useMemo(() => new THREE.AnimationClip('TextPan', 70, [textNegKeyframeTrack, textCoRTrack, alphaTrack]), [textNegKeyframeTrack, textCoRTrack, alphaTrack]);
     
 
   const setupMg = (node) => {
@@ -441,31 +451,63 @@ const GLHeader = () => {
     if(mgRef.current) {
       textAnimMixer = new THREE.AnimationMixer(mgRef.current);
       textPanAction = textAnimMixer.clipAction(textAnimClip);
-      textPanAction.play();
+      // textPanAction.play();
     }
 
     };
-    let txtAnimMixer, txtAnimClip, depthKeyFrame, txtDepthAction;
-    depthKeyFrame = new THREE.NumberKeyframeTrack('.depth', [0, 35, 70], [0.3, 0.0, 0.3], THREE.InterpolateSmooth);
 
-    const txtSetup = (node) => {
-      // textRef.current.geometry.computeBoundingBox();
+  let txtAnimMixer, txtRangeTrack, txtAnimClip, txtAnimAction;
+
+  const setupTxt = node => {
+    if(node) {
+      txtRef.current = node;
+      // txtRef.current.geometry = BufferGeometryUtils.mergeGroups(txtRef.current.geometry);
+      const nodeRef = txtRef.current;
       
-      Object.defineProperties(node,{
-        sX: {
-          get() { return this.material.uniforms.sX.value;},
-          set(val) {this.material.uniforms.sX.value = val;}
-        },
-        sY: {
-          get() { return this.material.uniforms.sY.value;},
-          set(val) {this.material.uniforms.sY.value = val;}
-        }
+      const sz = Vec2(bgFramebufferTex.image.width, bgFramebufferTex.image.height);
+      console.log(sz);
+      txtRef.current.material.uniforms.size.value = sz;
+
+      if(!Object.hasOwn(nodeRef,'range')) {
+        Object.defineProperty(nodeRef, 'range', {
+          get() { return this.geometry.drawRange.count; },
+          set(val) { this.geometry.drawRange.count = val; }
+        });
+      }
+      if(!Object.hasOwn(nodeRef,'alpha')) {
+      Object.defineProperty(nodeRef, 'alpha', {
+        get() { return this.material.uniforms.alpha.value; },
+        set(value) { this.material.uniforms.alpha.value = value; }
       });
     }
+      const txtPosLn = nodeRef.geometry.attributes.position.array.length;
+      const txtRangeTm = Array(27).fill(0).map((tm, i) => {
+        return i;
+      });
+
+      const txtRangeVals = Array(27).fill(0).map((val, i) => {
+        if(i > 2) {
+          return Math.floor((i - 2) * (1 / 24) * txtPosLn);
+          
+        } else return null;
+      });
+
+      txtRangeTrack = new THREE.NumberKeyframeTrack('.range', txtRangeTm,txtRangeVals,THREE.InterpolateSmooth);
+      txtAnimClip = new THREE.AnimationClip('', 4,[alphaTrack]);
+      txtAnimMixer = new THREE.AnimationMixer(nodeRef);
+      txtAnimAction = txtAnimMixer.clipAction(txtAnimClip);
+      txtAnimAction.setLoop(THREE.LoopOnce);
+      txtAnimAction.play();
+
+
+      console.log(`txtRef.current:`, txtRef.current);
+      }
+  }
  
   useFrame((state, delta) => {
     bgRef.current !== null && bgAnimMixer?.update(delta);
     mgRef.current !== null && textAnimMixer?.update(delta);
+    txtAnimMixer?.update(delta);
   });
     
   return (
@@ -474,19 +516,7 @@ const GLHeader = () => {
         <planeGeometry args={[bgTexture.image.width * dpr, bgTexture.image.height * dpr]} />
         <shaderMaterial args={[planeShader(bgTexture)]} uniforms-sX-value={2.125} uniforms-sY-value={2.125 / (bgTexture.image.width / bgTexture.image.height)} uniforms-oX-value={-0.4} uniforms-oY-value={0.17} />
       </mesh>
-
-      <mesh scale={[txtScale.x, txtScale.y, txtScale.z]} position={[-6.25,3.5,0.24]} onBeforeRender={txtBeforeRender} renderOrder={25}   oX={0} oY={0} rotation={[THREE.MathUtils.degToRad(9), 0, 0]}
-      ref={node => {
-        if(node) {
-          txtRef.current = node;
-          const nodeRef = txtRef.current;
-          const sz = Vec2(bgFramebufferTex.image.width, bgFramebufferTex.image.height);
-          console.log(sz);
-          txtRef.current.material.uniforms.size.value = sz;
-
-          console.log(txtRef.current);
-          }
-        }} >
+      <mesh scale={[txtScale.x, txtScale.y, txtScale.z]} position={[-6.25,3.5,0.24]} onBeforeRender={txtBeforeRender} renderOrder={25}   oX={0} oY={0} rotation={[THREE.MathUtils.degToRad(9), 0, 0]} ref={setupTxt}>
 
       <extrudeGeometry args={[shapes, {
         curveSegments:20,
@@ -499,7 +529,7 @@ const GLHeader = () => {
         {/* <shaderMaterial args={[{...textShader(bgTexture, bgFramebufferTex), transparent: true, wireframe:false}]} uniforms-sX-value={0.125} uniforms-sY-value={0.002 / (bgFramebufferTex.image.width / bgFramebufferTex.image.height * headerHeightScale)} uniforms-oX-value={oX.current + 0.5} uniforms-oY-value={0}  /> */}
         <shaderMaterial args={[{...textShader(bgTexture, bgFramebufferTex), transparent: true, wireframe:false}]} uniforms-sX-value={.001625 / camera.position.z / 5} uniforms-sY-value={0.0037 / (bgFramebufferTex.image.width / bgFramebufferTex.image.height)} uniforms-oX-value={-bgRef.current?.oX * camera.position.z / 5 || 0} uniforms-oY-value={0}  />
       </mesh>
-    </> 
+      </>
   );} 
-/* sx=0.274, sy=0.121 == misty */
+
 export default GLHeader;
