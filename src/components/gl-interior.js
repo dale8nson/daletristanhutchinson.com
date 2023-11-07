@@ -451,7 +451,7 @@ const Osaranma = ({position=Vec2(0,0,0)}) => {
     }
     const strutArray = Array(52).fill(<></>).map((strut, index) => {
       return (
-        <Strut key={index} position={Vec3(position.x - (index * 0.1395), position.y + 0, position.z +  0)} />
+        <Strut key={index} position={Vec3(position.x - (index * 0.16), position.y + 0, position.z +  0)} />
       );
     })
 
@@ -464,7 +464,7 @@ const Osaranma = ({position=Vec2(0,0,0)}) => {
 
   return (
     <>
-      <Brace position={Vec3(position.x, position.y + 0.05, position.z)} scale={Vec3(0.0044, 0.000725, 1)} UVScale={Vec2(1,0.5)} />
+      <Brace position={Vec3(position.x, position.y + 0.05, position.z)} scale={Vec3(0.006, 0.000725, 1)} UVScale={Vec2(1,0.5)} />
       <Brace position={Vec3(position.x, position.y + 0.32499999999999996, position.z - 0.1)} scale={Vec3(-0.0062475, -0.0001, 1)} UVScale={Vec2(0.02,0.5)} greyScale={true} greyOffset={-0.075} />
       <Brace position={Vec3(position.x - 1.2500000000000004, position.y + 0.16999999999999993, position.z - 0.1)} scale={Vec3(-0.0062475, -0.00044167, 1)} UVScale={Vec2(1,0.5)} greyScale={true} greyOffset={-0.075} />
       <Struts position={Vec3(position.x + 3.2944999999999998, position.y + 0.577, position.z - 0.1)} />
@@ -517,7 +517,7 @@ const Shoji = ({scale=Vec3(1,1,1), position, greyOffset=0.0, rotation=new THREE.
 
     const vLatticeArray = Array(4).fill(null).map((_, index) => {
       return (
-        <Strut key={index} position={Vec3(position.x + 1.5 - (index + 1) * 0.6 * scale.x, position.y - 3.125 * scale.y, position.z * scale.z)} scale={Vec3(0.0036, 0.00015, 1)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
+        <Strut key={index} position={Vec3(position.x + 1.8 - (index + 1) * 0.6 * scale.x, position.y - 3.29 * scale.y, position.z * scale.z)} scale={Vec3(scale.x * 0.003, scale.y * 0.00015, 1)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
       );
     })
 
@@ -526,8 +526,8 @@ const Shoji = ({scale=Vec3(1,1,1), position, greyOffset=0.0, rotation=new THREE.
         {hLatticeArray}
         {vLatticeArray}
         <Strut position={Vec3(position.x + 0 * scale.x, position.y - 0.375 * scale.y, position.z * scale.z)} scale={Vec3(0.002 * scale.x, 0.00037 * scale.y, 1 * scale.z)} />
-        <Strut position={Vec3(position.x - 1.53 * scale.x, position.y - 3.175 * scale.y, position.z * scale.z)} scale={Vec3(0.00325 * scale.x, 0.0006 * scale.y, 1 * scale.z)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
-        <Strut position={Vec3(position.x + 1.53 * scale.x, position.y - 3.175 * scale.y, position.z * scale.z)} scale={Vec3(0.00325 * scale.x, 0.0006 * scale.y, 1 * scale.z)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
+        <Strut position={Vec3(position.x - 1.53 * scale.x, position.y - 3.3 * scale.y, position.z * scale.z)} scale={Vec3(0.0031 * scale.x, 0.0006 * scale.y, 1 * scale.z)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
+        <Strut position={Vec3(position.x + 1.53 * scale.x, position.y - 3.3 * scale.y, position.z * scale.z)} scale={Vec3(0.0031 * scale.x, 0.0006 * scale.y, 1 * scale.z)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
         <Strut position={Vec3(position.x + 0 * scale.x, position.y - 5.9 * scale.y, position.z * scale.z)} scale={Vec3(0.002 * scale.x, 0.00037 * scale.y, 1 * scale.z)} />
       </>
     )
@@ -633,7 +633,7 @@ const WallPaper = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), renderOrd
   return (
     <mesh scale={[scale.x,scale.y,scale.z]} position={[position.x, position.y, position.z]} rotation={rotation} renderOrder={renderOrder} >
       <planeGeometry args={[texSize.x * dpr, texSize.y * dpr]} />
-      <shaderMaterial args={[Shader({map:tex, UVScale:Vec2(UVScale.x, UVScale.y / (scale.x / scale.y)), UVOffset, RGBOffset:Vec3(0.3, 0.3, 0.3), greyScale:greyScale, greyOffset:greyOffset, alphaRange:Vec2(0.1, 0.35), alphaMinCutoff:0.0, alphaMaxCutoff:1, greyOffset:greyOffset, useMap2, map2: map2Tex, map2UVScale, map2Scale})]} wireframe={false} side={THREE.DoubleSide} />
+      <shaderMaterial args={[Shader({map:tex, UVScale:Vec2(UVScale.x, UVScale.y / (scale.x / scale.y)), UVOffset, RGBOffset:Vec3(0.3, 0.3, 0.3), greyScale:greyScale, alphaRange:Vec2(0.1, 0.35), alphaMinCutoff:0.0, alphaMaxCutoff:1, greyOffset:greyOffset, useMap2, map2: map2Tex, map2UVScale, map2Scale})]} wireframe={false} side={THREE.DoubleSide} />
     </mesh>
   );
 }
@@ -668,12 +668,12 @@ const Backdrop = ({map=null, position=Vec3(0,0,0), scale=Vec3(1,1,1), rotation=n
 
   const tex = useLoader(THREE.TextureLoader, map)
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  console.log(`tex:`, tex);
+  // console.log(`tex:`, tex);
 
   const backMapTex = useLoader(THREE.TextureLoader, backMap);
   backMapTex.wrapS = tex.wrapT = THREE.RepeatWrapping;
 
-  console.log(`backMapTex:`, backMapTex);
+  // console.log(`backMapTex:`, backMapTex);
 
   return (
     <mesh position={position} scale={scale} rotation={rotation} renderOrder={renderOrder} >
@@ -688,11 +688,17 @@ const GLInterior = (props) => {
   // console.log(`camera:`, camera);
 
   // camera.position.z = 5;
-  camera.position.z = 3.25;
+  camera.position.z = 3;
   camera.position.y = -0.925;
   camera.position.x = 3.375;
   camera.rotation.y = 0;
   camera.rotation.x = 0;
+
+  // camera.position.z = 1.25;
+  // camera.position.y = 3.2;
+  // camera.position.x = 0;
+  // camera.rotation.y = 0;
+  // camera.rotation.x = (Math.PI / 180 * 10);
 
   // camera.position.z = -2.5;
   // camera.position.y = -17.925;
@@ -719,11 +725,11 @@ const GLInterior = (props) => {
   // camera.rotation.y = 0;
   // camera.rotation.x = (Math.PI / 180 * 10);
   
-  let camAnimMixer, camPanXTrack, camPanYTrack, camPanZTrack, camRotXTrack, camZoomTrack, camAnimClip, camAnimAction;
-  camPanXTrack = new THREE.NumberKeyframeTrack('.position[x]',[0,6,9], [-15,5,3.375],THREE.InterpolateLinear);
-  camPanYTrack = new THREE.NumberKeyframeTrack('.position[y]',[0,6,9,11,15], [2.95, 2.95, -0.4,-0.925,-0.925],THREE.InterpolateLinear);
-  camPanZTrack = new THREE.NumberKeyframeTrack('.position[z]',[0,4,9,16], [1.125, 1.125, 4, 3.25],THREE.InterpolateLinear);
-  camRotXTrack = new THREE.NumberKeyframeTrack('.rotation[x]',[0,4,7,9,11], [0, 0, (Math.PI / 180 * 10),-(Math.PI / 180 * 3),  0],THREE.InterpolateLinear);
+  let camAnimMixer, camPanXTrack, camPanYTrack, camPanZTrack, camRotXTrack, camAnimClip, camAnimAction;
+  camPanXTrack = new THREE.NumberKeyframeTrack('.position[x]',[0,6.5,9,12,14], [-8,0,-2,-2, 3.375],THREE.InterpolateSmooth);
+  camPanYTrack = new THREE.NumberKeyframeTrack('.position[y]',[0,11,12,13,14], [2.7, 2, -0.4,-0.925,-0.925],THREE.InterpolateSmooth);
+  camPanZTrack = new THREE.NumberKeyframeTrack('.position[z]',[0,4,6.5,9,12,14], [1.2, 1.2,4.5,4.5, 3.75, 3],THREE.InterpolateSmooth);
+  camRotXTrack = new THREE.NumberKeyframeTrack('.rotation[x]',[0,7,9,11,16], [0, 0, (Math.PI / 180 * 10),-(Math.PI / 180 * 4),  0],THREE.InterpolateSmooth);
 
   // camZoomTrack = new THREE.NumberKeyframeTrack('.zoom',[0,10,11], [64,64,1], THREE.InterpolateSmooth);
   camAnimClip = new THREE.AnimationClip('camAm',16,[camPanXTrack,camPanYTrack,camPanZTrack,camRotXTrack]);
@@ -741,7 +747,7 @@ const GLInterior = (props) => {
     fusuRef.current = node;
     const nodeRef = fusuRef.current;
     fusuAnimMixer = new THREE.AnimationMixer(nodeRef);
-    fusuXTrack = new THREE.NumberKeyframeTrack('.position[x]', [0,9,16], [-3.9,-3.9,0], THREE.InterpolateLinear);
+    fusuXTrack = new THREE.NumberKeyframeTrack('.position[x]', [0,11,15], [-3.9,-3.9,0], THREE.InterpolateLinear);
     fusuAnimClip = new THREE.AnimationClip('',16,[fusuXTrack]);
     fusuAction = fusuAnimMixer.clipAction(fusuAnimClip);
     fusuAction.setLoop(THREE.LoopOnce);
@@ -755,10 +761,10 @@ const GLInterior = (props) => {
 
   return (
   <>
-    <Backdrop map={planks} position={Vec3(-9,3,-7.6)} scale={Vec3(.08,.015,1)} rotation={new THREE.Euler((Math.PI / 2), 0, 0)} UVScale={Vec2(16, 16)} backMap={planks} greyScale={true} greyOffset={-0.2} />
+    <Backdrop map={planks} position={Vec3(-9,3,-7.68)} scale={Vec3(.08,.015,1)} rotation={new THREE.Euler((Math.PI / 2), 0, 0)} UVScale={Vec2(16, 16)} backMap={planks} greyScale={true} greyOffset={-0.2} />
 
-    <Post scale={Vec3(0.008,0.0015,1)} position={Vec3(0.0,-2.5,0)} renderOrder={35} />
-    <WallPaper scale={Vec3(0.006205,0.0007,1)} position={Vec3(5.2, 1.75,0)} UVScale={Vec2(1, 1)} UVOffset={Vec2(0.2,0.01)} useMap2={true} map2UVScale={Vec2(2,0.25)} map2Scale={0.05} />
+    <Post scale={Vec3(0.00582,0.0015,1)} position={Vec3(0.0,-2.5,0)} renderOrder={35} />
+    <WallPaper scale={Vec3(0.006205,0.0006779,1)} position={Vec3(5.2, 1.74,0)} UVScale={Vec2(1, 1)} UVOffset={Vec2(0.2,0.01)} useMap2={true} map2UVScale={Vec2(2,0.25)} map2Scale={0.05} />
     <Brace scale={Vec3(0.0066, -0.0005, 1)} position={Vec3(5.5105,1.25,0)} renderOrder={45} />
     <Brace scale={Vec3(0.0066, -0.0005, 1)} position={Vec3(5.5105,-3.3,0)} renderOrder={45} />
     <WallPaper map={plaster} scale={Vec3(0.0032, 0.0001975, 1)} position={Vec3(5.35,-3.7,0)} UVOffset={Vec2(0.2,0.01)}  />
@@ -768,7 +774,7 @@ const GLInterior = (props) => {
     
     <WallPaper map={plaster} scale={Vec3(0.004, 0.002975, 1)} position={Vec3(0,-0.3,-13)} UVOffset={Vec2(0.2,0.01)} greyScale={true} greyOffset={-0.5} />
     <Shoji position={Vec3(1.8, 1.8, -12.875)} scale={Vec3(1.2,1,1)} />
-    <Backdrop map={gotama} position={Vec3(1.82,-2.15,-12.8)} scale={Vec3(0.00115, 0.00115, 1)} UVOffset={Vec2(0,0)} greyScale={true} greyOffset={-1.9} greyMinCutoff={0.0} greyMaxCuttoff={1.0} greyRange={Vec2(0.0, 1)} alphaRange={Vec2(0.0,1)} UVScale={Vec2(1,1)} alphaMinCutoff={0.4} alphaMaxCutoff={1} RGBOffset={Vec3(0.0,0.0,0)} backMap={gotama} />
+    <Backdrop map={gotama} position={Vec3(1.82,-2.15,-12.8)} scale={Vec3(0.001155, 0.001155, 1)} UVOffset={Vec2(0,0)} greyScale={true} greyOffset={-1.9} greyMinCutoff={0.0} greyMaxCuttoff={1.0} greyRange={Vec2(0.0, 1)} alphaRange={Vec2(0.0,1)} UVScale={Vec2(1,1)} alphaMinCutoff={0.4} alphaMaxCutoff={1} RGBOffset={Vec3(0.0,0.0,0)} backMap={gotama} />
     <Mat position={Vec3(3.1, -3.175, -7)} scale={Vec3(0.000925, 0.000925, 0.01)} rotation={Vec3(-90,0,-90)} rightTrim={false} greyOffset={-0.3} />
     <Mat position={Vec3(3.1, -3.175, -10.1)} scale={Vec3(0.000925, 0.000925, 0.01)} rotation={Vec3(-90,0,-90)} rightTrim={false} greyOffset={-0.3} />
 
@@ -780,16 +786,18 @@ const GLInterior = (props) => {
     <Mat position={Vec3(13.8845, -3.5, -1.176)} scale={Vec3(0.000925, 0.000925, 0.01)} rotation={Vec3(-90,0,-90)} rightTrim={true} />
 
     <Post scale={Vec3(0.00275,0.000071,1)} position={Vec3(6.825,-1.02,0)} rotation={new THREE.Euler(0, -(Math.PI / 2),-(Math.PI / 2))} greyOffset={-0.2} renderOrder={35} />
-    <Post scale={Vec3(0.0025,0.0004,1)} position={Vec3(6.579,-1.02,0.3)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} greyOffset={0} renderOrder={35} /> 
-    <WallPaper map={plaster} scale={Vec3(0.0021, 0.00141225, 1)} position={Vec3(10.2,-1.1,-0.0001)} UVOffset={Vec2(0.2,0.01)} greyScale={true} greyOffset={-0.5} />
+    <Post scale={Vec3(0.00274,0.0004,1)} position={Vec3(6.775,-1.02,0)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} greyOffset={0} renderOrder={35} /> 
+    <WallPaper map={plaster} scale={Vec3(0.0021, -0.00141225, 1)} position={Vec3(10.2,-1.1,-0.0001)} UVOffset={Vec2(0.2,0.01)} greyScale={true} greyOffset={-0.4} />
     <Fusuma map={plaster} position={Vec3(5.75, -1.03, -0.02)} scale={Vec3(-0.001, 0.00134, 1)}  ref={setupFusuma}  />
     <Fusuma map={plaster} position={Vec3(5.1, -1.03, -0.04)} scale={Vec3(0.001, 0.00134, 1)} />
+    <Post scale={Vec3(0.0025885,0.0004,1)} position={Vec3(6.579,-1.05,-0.14)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} greyOffset={0} renderOrder={35} /> 
+    <WallPaper map={plaster} scale={Vec3(0.0021, 0.00141225, 1)} position={Vec3(10.2,-1.1,-0.1401)} UVOffset={Vec2(0.2,0.01)} greyScale={true} greyOffset={-0.7} />
 
     <Brace scale={Vec3(-0.0045, 0.00025, 1)} position={Vec3(3.59223,-3.3,-0.14)} rotation={new THREE.Euler(-(Math.PI / 2), 0, 0)} greyOffset={-0.1} />
 
-    <WallPaper map={paper} position={Vec3(-9.3,3.38,-5.775)} scale={Vec3(0.00325,0.0009,1)} UVOffset={Vec2(0.2,0.02)} renderOrder={5} />
-    <Backdrop map={ryouanji} position={Vec3(-10.5,-1,-6)} scale={Vec3(0.0010,0.0012,1)} UVScale={Vec2(0.8, 0.8)} UVOffset={Vec2(0.33, 0)} greyScale={true} greyRange={Vec2(0.0, 0.7)} backMap={ryouanji} />
-    <Brace scale={Vec3(0.0065,0.00075,1)} position={Vec3(-9.3,1.8,-5.63)} rotation={new THREE.Euler(0, 0, 0)} greyScale={true} greyOffset={-0.075} />
+    <WallPaper map={paper} position={Vec3(-9.3,3.38,-5.775)} scale={Vec3(0.0039,0.0009,1)} UVOffset={Vec2(0.2,0.02)} renderOrder={5} />
+    <Backdrop map={ryouanji} position={Vec3(-10.5,-1,-6)} scale={Vec3(0.0012,0.0012,1)} UVScale={Vec2(0.8, 0.8)} UVOffset={Vec2(0.33, 0)} greyScale={true} greyRange={Vec2(0.0, 0.7)} backMap={ryouanji} />
+    <Brace scale={Vec3(0.0075,0.00075,1)} position={Vec3(-9.3,1.8,-5.63)} rotation={new THREE.Euler(0, 0, 0)} greyScale={true} greyOffset={-0.075} />
     <WallPaper map={plaster} position={Vec3(-0.2,-0.9,-6.7)} scale={Vec3(0.004125,0.003,1)} rotation={new THREE.Euler(0,Math.PI / 2, 0)} UVOffset={Vec2(0.2,0.01)} renderOrder={5} />
 
     <Shoji position={Vec3(-5.75, 2, -5.5)} scale={Vec3(1.06,1,1)}/>
@@ -810,6 +818,8 @@ const GLInterior = (props) => {
     <Mat position={Vec3(-4.1125, -3.95, -0.78)} scale={Vec3(0.000925, 0.000925, 0.01)} />
     <Mat position={Vec3(-7.659, -3.95, -0.78)} scale={Vec3(0.000925, 0.000925, 0.01)} />
     <Mat position={Vec3(-11.2055, -3.95, -0.78)} scale={Vec3(0.000925, 0.000925, 0.01)} />
+    <Mat position={Vec3(-14.752, -3.95, -0.78)} scale={Vec3(0.000925, 0.000925, 0.01)} />
+
     
     <Post scale={Vec3(0.005,0.0012,.0001)} position={Vec3(-3.725,-0.675,-1.65)} />
     <Post scale={Vec3(0.00595,0.0017,1)} position={Vec3(-11.075,0.15,-5.55)}  />

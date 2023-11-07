@@ -19,6 +19,7 @@ import GLInterior from './gl-interior';
 import WebGLCanvas from './webgl-canvas';
 import Enso from './enso';
 import MainMenu from './main-menu';
+import GLUI from './gl-ui';
 
 
 export {
@@ -41,5 +42,6 @@ export {
   GLHeader,
   GLInterior,
   Enso,
-  MainMenu
+  MainMenu,
+  GLUI
 };

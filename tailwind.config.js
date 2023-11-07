@@ -1,8 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 // const parchment = require('./src/assets/Texturelabs_Glass_151L.jpg');
 // console.log(`parchment: ${parchment}`);
-const gatsby = require('gatsby');
-const useStaticQuery = gatsby.useStaticQuery;
 
 module.exports = {
   purge: [

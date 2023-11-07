@@ -22,6 +22,9 @@ const Shader = ({
   useMap2,
   map2UVScale,
   map2Scale,
+  map2Color,
+  map2UVOffset,
+  map2MaxCutoff,
   useBackMap,
   backMap,
   antialias, 
@@ -36,6 +39,9 @@ const Shader = ({
   greyScale, 
   greyMinCutoff,
   greyMaxCutoff,
+  useColorSelect,
+  colorsSelect,
+  colorsSelectCount,
   negative,
   redRange,
   greenRange,
@@ -48,7 +54,10 @@ const Shader = ({
       map2: {value: map2 || null},
       useMap2: { value: useMap2 || false},
       map2Scale: {value: map2Scale || 1.0},
+      map2Color: { value: map2Color || vec3(1,1,1)},
       map2UVScale: {value: map2UVScale || vec2(1,1)},
+      map2UVOffset: {value: map2UVOffset || vec2(1,1)},
+      map2MaxCutoff: { value: map2MaxCutoff || 0.6},
       useBackMap: {value: useBackMap || false},
       backMap: {value: backMap || null},
       antialias: {value: antialias || false},  
@@ -61,6 +70,9 @@ const Shader = ({
       alphaMaxCutoff: {value: alphaMaxCutoff || 1.0},
       greyOffset: {value: greyOffset || 0.0},
       greyScale: {value: greyScale || false},
+      useColorSelect: { value: useColorSelect || false },
+      // colorsSelect: { value: colorsSelect || null },
+      // colorsSelectCount: { value: colorsSelectCount || 0 },
       greyMinCutoff: { value: greyMinCutoff || 0},
       greyMaxCutoff: { value: greyMaxCutoff || 1},
       negative: { value: negative || 0.0 },
@@ -71,23 +83,23 @@ const Shader = ({
     },
     vertexShader: vertexPass,
     fragmentShader: `
-
+      
+      uniform int colorsSelectCount;
       uniform sampler2D map, map2, backMap;
-      uniform vec3 RGBScale, RGBOffset;
-      uniform vec2 UVScale, UVOffset, map2UVScale, redRange, greenRange, blueRange, greyRange, alphaRange;
-      uniform bool useMap2, useBackMap, antialias, greyScale;
-      uniform float alphaMinCutoff, alphaMaxCutoff, map2Scale, greyOffset, greyMinCutoff, greyMaxCutoff, negative;
+      uniform vec3 RGBScale, RGBOffset, map2Color;
+      uniform vec2 UVScale, UVOffset, map2UVScale, map2UVOffset, redRange, greenRange, blueRange, greyRange, alphaRange;
+      uniform bool useMap2, useBackMap, antialias, greyScale, useColorSelect;
+      uniform float alphaMinCutoff, alphaMaxCutoff, map2Scale, map2MaxCutoff, greyOffset, greyMinCutoff, greyMaxCutoff, negative;
+      
 
       varying vec2 vUv;
 
       void main() {
 
-        vec2 scaledUV = vec2(vUv.x * UVScale.x + UVOffset.x, 
-          vUv.y * UVScale.y + UVOffset.y);
+        vec2 scaledUV = vec2(vUv.x * UVScale.x + UVOffset.x, vUv.y * UVScale.y + UVOffset.y);
         vec4 mapCol = texture2D(map, scaledUV);
 
         vec4 col = mapCol;
-
 
         float contrastThreshold = 0.4;
 
@@ -103,6 +115,27 @@ const Shader = ({
           grey = clamp(grey, greyRange.x, greyRange.y);
 
           red = green = blue = grey * scale + offset + greyOffset;
+
+          // if(useColorsSelect) {
+          //   for(int i = 0; i < colorsSelect.length(); i++) {
+          //     vec3 c = colorsSelect[i];
+          //     if(col.r == c.r && col.g == c.g && col.b == c.b) {
+          //       red = c.r;
+          //       green = c.g;
+          //       blue = c.b;
+          //       break;
+          //     }
+          //   }
+          // }
+          if(useColorSelect) {
+            if(col.r >= redRange.x && col.r <= redRange.y
+            && col.g >= greenRange.x && col.g <= greenRange.y 
+            && col.b >= blueRange.x && col.b <= blueRange.y) { 
+              red = col.r;
+              green = col.g;
+              blue = col.b;
+            }
+          }
 
         } else {
 
@@ -120,9 +153,9 @@ const Shader = ({
           col.a < alphaMinCutoff || col.a > alphaMaxCutoff) { discard; }
 
         if(useMap2) {
-          vec2 map2Scaled = vec2((vUv.x * 1.0) * map2UVScale.x, vUv.y * map2UVScale.y );
+          vec2 map2Scaled = vec2(vUv.x * map2UVScale.x + map2UVOffset.x, vUv.y * map2UVScale.y + map2UVOffset.y );
           vec4 map2Col = texture2D(map2, map2Scaled);
-          if (map2Col.r > 0.6) {
+          if ((map2Col.r + map2Col.g + map2Col.b) / 3.0 > map2MaxCutoff) {
             red -= map2Col.r * map2Scale;
             green -=  map2Col.g * map2Scale;
             blue -= map2Col.b * map2Scale;

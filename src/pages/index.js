@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState, Suspense } from 'react';
 import  { WebGLCanvas, Enso } from '../components';
-import { Seo,Layout, GLHeader, GLInterior, MainMenu } from '../components';
+import { Seo,Layout, GLHeader, GLInterior, MainMenu, GLUI } from '../components';
 import './scss/_index.scss';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -31,8 +31,8 @@ const IndexPage = () => {
   
   return (
     <>
-      <Canvas id='canvas' >
-      {/* <ambientLight /> */} 
+      <Canvas id='canvas' onScroll={() => null} >
+      {/* <ambientLight />  */}
         {/* <Enso scale={vec3(1,1,1)} /> */}
         <Suspense fallback={<Enso position={vec3(3.5,-.7,0)} scale={vec3(1.5, 1.5, 1)} />} >
           <directionalLight position={new THREE.Vector3(-40,0,10)} args={[0xffffff, 1.2]} castShadow={false} />
@@ -40,10 +40,12 @@ const IndexPage = () => {
           <GLHeader />
           <GLInterior />
         </Suspense>
+        {/* <GLUI /> */}
       </Canvas>
     {/* {isMounted && <WebGLCanvas /> } */}
       <div id='ui' >
         {/* <MainMenu /> */}
+        
       </div>
     </>
   )

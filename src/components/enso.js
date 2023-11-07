@@ -90,7 +90,7 @@ const Enso = ({ position = Vec3(0, 0, 0), scale = Vec3(1, 1, 1), rotation = new 
   return (
     <mesh position={[position.x, position.y, position.z]} scale={[scale.x, scale.y, scale.z]} rotation={new THREE.Euler(rotation.x, rotation.y, rotation.z)} ref={initMesh} >
       <circleGeometry />
-      <shaderMaterial args={[SpinnerShader({ mask: mask, color: Vec4(0.8,0.8, 0.8, 1) })]} />
+      <shaderMaterial args={[SpinnerShader({ mask: mask, color: Vec4(0.5,0.5, 0.5, 1) })]} />
     </mesh>
   );
 }
