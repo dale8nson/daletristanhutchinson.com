@@ -517,7 +517,7 @@ const Shoji = ({scale=Vec3(1,1,1), position, greyOffset=0.0, rotation=new THREE.
 
     const vLatticeArray = Array(4).fill(null).map((_, index) => {
       return (
-        <Strut key={index} position={Vec3(position.x + 1.8 - (index + 1) * 0.6 * scale.x, position.y - 3.29 * scale.y, position.z * scale.z)} scale={Vec3(scale.x * 0.003, scale.y * 0.00015, 1)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
+        <Strut key={index} position={Vec3(position.x + 1.8 - (index + 1) * 0.6 * scale.x, position.y - 3.125 * scale.y, position.z * scale.z)} scale={Vec3(scale.y * 0.003385, scale.x * 0.00015, 1)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
       );
     })
 
@@ -525,10 +525,10 @@ const Shoji = ({scale=Vec3(1,1,1), position, greyOffset=0.0, rotation=new THREE.
       <>
         {hLatticeArray}
         {vLatticeArray}
-        <Strut position={Vec3(position.x + 0 * scale.x, position.y - 0.375 * scale.y, position.z * scale.z)} scale={Vec3(0.002 * scale.x, 0.00037 * scale.y, 1 * scale.z)} />
-        <Strut position={Vec3(position.x - 1.53 * scale.x, position.y - 3.3 * scale.y, position.z * scale.z)} scale={Vec3(0.0031 * scale.x, 0.0006 * scale.y, 1 * scale.z)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
-        <Strut position={Vec3(position.x + 1.53 * scale.x, position.y - 3.3 * scale.y, position.z * scale.z)} scale={Vec3(0.0031 * scale.x, 0.0006 * scale.y, 1 * scale.z)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
-        <Strut position={Vec3(position.x + 0 * scale.x, position.y - 5.9 * scale.y, position.z * scale.z)} scale={Vec3(0.002 * scale.x, 0.00037 * scale.y, 1 * scale.z)} />
+        <Strut position={Vec3(position.x + 0 * scale.x, position.y - 0.375 * scale.y, position.z * scale.z)} scale={Vec3(0.002025 * scale.x, 0.00037 * scale.y, 1 * scale.z)} />
+        <Strut position={Vec3(position.x - 1.53 * scale.x, position.y - 3.15 * scale.y, position.z * scale.z)} scale={Vec3(0.0034 * scale.y, 0.0006 * scale.x, 1 * scale.z)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
+        <Strut position={Vec3(position.x + 1.53 * scale.x, position.y - 3.15 * scale.y, position.z * scale.z)} scale={Vec3(0.0034 * scale.y, 0.0006 * scale.x, 1 * scale.z)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
+        <Strut position={Vec3(position.x + 0 * scale.x, position.y - 5.9 * scale.y, position.z * scale.z)} scale={Vec3(0.002025 * scale.x, 0.00037 * scale.y, 1 * scale.z)} />
       </>
     )
   }
@@ -536,7 +536,7 @@ const Shoji = ({scale=Vec3(1,1,1), position, greyOffset=0.0, rotation=new THREE.
   return (
     <>
       <Lattice position={Vec3(position.x - 0.0475, position.y, position.z)} />
-      <WallPaper map={plaster} scale={Vec3(0.00095 * scale.x, 0.00178 * scale.y, 1 * scale.z)} position={Vec3(position.x - 0.1 * scale.x, position.y - 3.175 * scale.y, position.z - 0.125)} />
+      <WallPaper map={plaster} scale={Vec3(0.00095 * scale.x, 0.00178 * scale.y, 1 * scale.z)} position={Vec3(position.x - 0.1 * scale.x, position.y - 3.175 * scale.y, position.z - 0.15)} />
     </>
   );
 }
@@ -694,9 +694,9 @@ const GLInterior = (props) => {
   camera.rotation.y = 0;
   camera.rotation.x = 0;
 
-  // camera.position.z = 1.25;
-  // camera.position.y = 3.2;
-  // camera.position.x = 0;
+  // camera.position.z = 5;
+  // camera.position.y = 0;
+  // camera.position.x = -5;
   // camera.rotation.y = 0;
   // camera.rotation.x = (Math.PI / 180 * 10);
 
@@ -727,9 +727,9 @@ const GLInterior = (props) => {
   
   let camAnimMixer, camPanXTrack, camPanYTrack, camPanZTrack, camRotXTrack, camAnimClip, camAnimAction;
   camPanXTrack = new THREE.NumberKeyframeTrack('.position[x]',[0,6.5,9,12,14], [-8,0,-2,-2, 3.375],THREE.InterpolateSmooth);
-  camPanYTrack = new THREE.NumberKeyframeTrack('.position[y]',[0,11,12,13,14], [2.7, 2, -0.4,-0.925,-0.925],THREE.InterpolateSmooth);
+  camPanYTrack = new THREE.NumberKeyframeTrack('.position[y]',[0,9,12,13,14], [2.9, 2, -0.4,-0.925,-0.925],THREE.InterpolateSmooth);
   camPanZTrack = new THREE.NumberKeyframeTrack('.position[z]',[0,4,6.5,9,12,14], [1.2, 1.2,4.5,4.5, 3.75, 3],THREE.InterpolateSmooth);
-  camRotXTrack = new THREE.NumberKeyframeTrack('.rotation[x]',[0,7,9,11,16], [0, 0, (Math.PI / 180 * 10),-(Math.PI / 180 * 4),  0],THREE.InterpolateSmooth);
+  camRotXTrack = new THREE.NumberKeyframeTrack('.rotation[x]',[0,9,12,14,16], [0, 0, (Math.PI / 180 * 10),-(Math.PI / 180 * 4),  0],THREE.InterpolateSmooth);
 
   // camZoomTrack = new THREE.NumberKeyframeTrack('.zoom',[0,10,11], [64,64,1], THREE.InterpolateSmooth);
   camAnimClip = new THREE.AnimationClip('camAm',16,[camPanXTrack,camPanYTrack,camPanZTrack,camRotXTrack]);
@@ -772,7 +772,7 @@ const GLInterior = (props) => {
     <Brace scale={Vec3(0.0025, -0.0012, 0.0001)} position={Vec3(1.725, -3.35, -6)} UVScale={Vec2(0.5,0.5)} greyOffset={-0.1} />
     <Post scale={Vec3(0.004,0.0013,1)} position={Vec3(3.8,-0.8,-6)} greyOffset={-0.12} />
     
-    <WallPaper map={plaster} scale={Vec3(0.004, 0.002975, 1)} position={Vec3(0,-0.3,-13)} UVOffset={Vec2(0.2,0.01)} greyScale={true} greyOffset={-0.5} />
+    <WallPaper map={plaster} scale={Vec3(0.004, 0.002975, 1)} position={Vec3(0,-1.85,-13)} UVOffset={Vec2(0.2,0.01)} greyScale={true} greyOffset={-0.5} />
     <Shoji position={Vec3(1.8, 1.8, -12.875)} scale={Vec3(1.2,1,1)} />
     <Backdrop map={gotama} position={Vec3(1.82,-2.15,-12.8)} scale={Vec3(0.001155, 0.001155, 1)} UVOffset={Vec2(0,0)} greyScale={true} greyOffset={-1.9} greyMinCutoff={0.0} greyMaxCuttoff={1.0} greyRange={Vec2(0.0, 1)} alphaRange={Vec2(0.0,1)} UVScale={Vec2(1,1)} alphaMinCutoff={0.4} alphaMaxCutoff={1} RGBOffset={Vec3(0.0,0.0,0)} backMap={gotama} />
     <Mat position={Vec3(3.1, -3.175, -7)} scale={Vec3(0.000925, 0.000925, 0.01)} rotation={Vec3(-90,0,-90)} rightTrim={false} greyOffset={-0.3} />
