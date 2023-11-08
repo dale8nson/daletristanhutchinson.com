@@ -5,16 +5,18 @@ import * as THREE from 'three';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import bg from '../assets/zen-panorama-bg-cropped.webp';
 import mask from '../assets/dth-mask.png';
+import filmGrain from '../assets/01156_old_film_look_with_border.webm';
 // import './scss/_gl-header.scss';
 import SVG from '../assets/dth-union2.svg';
 import glass from '../assets/Texturelabs_Glass_154L.jpg';
 import { useLoader, useThree, useFrame } from '@react-three/fiber';
+import { useVideoTexture } from '@react-three/drei';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils';
 // import { Slider, Label } from '@fluentui/react';
 
-const Vec2 = (n1 = null, n2 = null) => new THREE.Vector2(n1, n2);
-const Vec3 = (n1 = null, n2 = null, n3 = null) => new THREE.Vector3(n1, n2, n3);
-const Vec4 = (n1 = null, n2 = null, n3 = null, n4 = null) => new THREE.Vector4(n1, n2, n3, n4);
+const vec2 = (n1 = null, n2 = null) => new THREE.Vector2(n1, n2);
+const vec3 = (n1 = null, n2 = null, n3 = null) => new THREE.Vector3(n1, n2, n3);
+const vec4 = (n1 = null, n2 = null, n3 = null, n4 = null) => new THREE.Vector4(n1, n2, n3, n4);
 
 const headerHeightScale = 0.1;
 
@@ -37,7 +39,7 @@ const GLHeader = () => {
   const size = new THREE.Vector2();
   gl.getSize(size);
   // console.log(`size:`, size);
-  const viewPort = Vec4();
+  const viewPort = vec4();
   gl.getViewport(viewPort);
   // console.log(`viewPort:`, viewPort);
   // console.log(`dpr: ${dpr}`);
@@ -63,17 +65,21 @@ const GLHeader = () => {
   maskTex.wrapS = maskTex.wrapT = THREE.RepeatWrapping;
   // maskTex.flipY = false;
 
+  const filmGrainTex = useVideoTexture(filmGrain);
+  filmGrainTex.wrapS = filmGrainTex.wrapT = THREE.RepeatWrapping;
 
   const mgHeightUnit = (bgTexture.image.width / bgTexture.image.height);
   // console.log(`mgHeightUnit: ${mgHeightUnit}`);
   const mgPosY = mgHeightUnit;
   // console.log(`mgPosY: ${mgPosY}`);
 
-  const planeShader = ({bgTex, glassMap=glassTex, maskMap=null, maskUVScale=Vec2(1,1), maskUVOffset=Vec2(0,0)}) => {
+  const planeShader = ({bgTex, glassMap=glassTex, glassUVScale=vec2(1,1), glassUVOffset=vec2(0,0), maskMap=null, maskUVScale=vec2(1,1), maskUVOffset=vec2(0,0)}) => {
     return {
       uniforms: {
         bgTex: { value: bgTex },
         glassMap: { value: glassMap },
+        glassUVScale: { value: glassUVScale},
+        glassUVOffset: {value: glassUVOffset},
         maskMap: { value: maskMap},
         maskUVScale: { value: maskUVScale },
         maskUVOffset: {  value: maskUVOffset },
@@ -111,7 +117,7 @@ const GLHeader = () => {
       fragmentShader: `
     
     uniform sampler2D bgTex, maskMap, glassMap;
-    uniform vec2 maskUVScale, maskUVOffset;
+    uniform vec2 maskUVScale, maskUVOffset, glassUVScale, glassUVOffset;
     uniform float sX, sY;
     uniform float oX, oY;
     uniform float x, neg;
@@ -136,7 +142,9 @@ const GLHeader = () => {
       vec2 maskScale = vUv * maskUVScale + maskUVOffset;
       vec4 maskCol = texture2D(maskMap, maskScale);
 
-      vec2 glassScaled = vec2((vUv.x) * 8.0 + (mod(oX, 5.0) == 0.0 ? .2 : 0.5) , vUv.y * 1.0);
+      // vec2 glassScaled = vec2((vUv.x) * 8.0 + (mod(oX, 5.0) == 0.0 ? .2 : 0.5) , vUv.y * 1.0);
+      vec2 glassScaled = vUv * glassUVScale + glassUVOffset;
+
       vec4 glassCol = texture2D(glassMap, glassScaled);
 
       float red = bgCol.r - neg * (bgCol.r - (1.0 - bgCol.r));
@@ -153,11 +161,14 @@ const GLHeader = () => {
         // blue = 0.0;
       }
 
-      if (glassCol.r > 0.2) {
+      if (glassCol.r < 1.0) {
         
-        red -= glassCol.r * 0.2;
-        green -= glassCol.g * 0.2;
-        blue -= glassCol.b * 0.2;
+        // red = glassCol.r;
+        // green = glassCol.g;
+        // blue = glassCol.b;
+        red -= glassCol.r * 0.3;
+        green -= glassCol.r * 0.3;
+        blue -= glassCol.r * 0.3;
 
         // alpha = glassCol.r * 0.8;
         // discard;
@@ -174,7 +185,7 @@ const GLHeader = () => {
     }
   }
 
-  const maskShader = ({ bgMap = null, mask = null, uvScale = Vec2(1, 1), uvOffset = Vec2(0, 0), maskUVScale=Vec2(1,1), maskUVOffset=Vec2(0,0)}) => {
+  const maskShader = ({ bgMap = null, mask = null, uvScale = vec2(1, 1), uvOffset = vec2(0, 0), maskUVScale=vec2(1,1), maskUVOffset=vec2(0,0)}) => {
     return {
       uniforms: {
         bgMap: { value: bgMap },
@@ -371,7 +382,7 @@ const GLHeader = () => {
 
   // let bgFramebufferOffset = useMemo(() => new THREE.Vector2(0,(size.height * dpr - bgFramebufferTex.image.height * headerHeightScale / (camera.position.z / (5 - 1.25))), [bgFramebufferTex.image.height, size.height]));
   // let bgFramebufferOffset = Vec2(0, size.y * dpr - size.x * dpr / (bgFramebufferTex.image.width / bgFramebufferTex.image.width * headerHeightScale)  / (camera.position.y / 2.95));
-  let bgFramebufferOffset = Vec2(0, 0);
+  let bgFramebufferOffset = vec2(0, 0);
 
   // gl.copyFramebufferToTexture(bgFramebufferOffset, bgFramebufferTex);
   // const bgFramebufferTex = useMemo(() => {
@@ -458,7 +469,7 @@ const GLHeader = () => {
 
     bgRef.current.geometry.computeBoundingBox();
     console.log(`bgRef.current:`, bgRef.current);
-    let bgSz = Vec3(0, 0, 0);
+    let bgSz = vec3(0, 0, 0);
     bgRef.current.geometry.boundingBox.getSize(bgSz);
     console.log(`bgSz:`, bgSz);
 
@@ -523,9 +534,9 @@ const GLHeader = () => {
   }
 
 
-  const textGeoSz = Vec3(0, 0, 0);
+  const textGeoSz = vec3(0, 0, 0);
   let textGeoScreenSz, textWorldSz, canvasWorldSz;
-  const diff = Vec2(0, 0);
+  const diff = vec2(0, 0);
 
   let txtAnimMixer, txtRangeTrack, txtAnimClip, txtAnimAction;
 
@@ -535,7 +546,7 @@ const GLHeader = () => {
       // txtRef.current.geometry = BufferGeometryUtils.mergeGroups(txtRef.current.geometry);
       const nodeRef = txtRef.current;
 
-      const sz = Vec2(bgFramebufferTex.image.width, bgFramebufferTex.image.height);
+      const sz = vec2(bgFramebufferTex.image.width, bgFramebufferTex.image.height);
       // console.log(sz);
       // console.log(`txtRef.current:`, txtRef.current);
       txtRef.current.material[0].uniforms.size.value = sz;
@@ -556,7 +567,7 @@ const GLHeader = () => {
       console.log(`textGeoSz`, textGeoSz);
       for (let i = 0; i < uvArray.length; i += 2) {
         // console.log(`uv: x:${uvArray[i]}, y: ${uvArray[i + 1]}`);
-        const coords = getScreenCoords(Vec3(uvArray[i], uvArray[i + 1], 0), nodeRef);
+        const coords = getScreenCoords(vec3(uvArray[i], uvArray[i + 1], 0), nodeRef);
         // console.log(`coords:`, coords);
         normalArray.push(uvArray[i] / textGeoSz.x, uvArray[i + 1] / textGeoSz.y);
       }
@@ -566,7 +577,7 @@ const GLHeader = () => {
 
       console.log(`bgRef.current.position.applyMatrix4(bgRef.current.matrixWorld): `, bgRef.current.position.clone().applyMatrix4(bgRef.current.matrixWorld))
       bgRef.current.geometry.computeBoundingBox();
-      const bgBBSz = Vec3(0, 0, 0);
+      const bgBBSz = vec3(0, 0, 0);
       bgRef.current.geometry.boundingBox.getSize(bgBBSz);
       bgBBSz.applyMatrix4(bgRef.current.matrixWorld);
       console.log(`bgBBSz:`, bgBBSz);
@@ -581,7 +592,7 @@ const GLHeader = () => {
       console.log(`textGeoScreenSz`, textGeoScreenSz);
       textWorldSz = textGeoSz.clone().applyMatrix4(nodeRef.matrixWorld);
       console.log(`textWorldSz:`, textWorldSz);
-      canvasWorldSz = Vec3(size.x, size.y, 0).unproject(camera);
+      canvasWorldSz = vec3(size.x, size.y, 0).unproject(camera);
       console.log(`canvasWorldSz:`, canvasWorldSz);
 
       console.log(`textWorldSz / canvasWorldSz:`, textWorldSz.divide(canvasWorldSz));
@@ -643,9 +654,9 @@ const GLHeader = () => {
   const txtBeforeRender = (renderer, scene, camera, geometry, material, group) => {
     if (!material.isShaderMaterial) return;
 
-    const coords = getScreenCoords(Vec3(camera.position.x, camera.position.y, camera.position.z), camera);
+    const coords = getScreenCoords(vec3(camera.position.x, camera.position.y, camera.position.z), camera);
     // console.log(`camera screen coordinates:`, coords)
-    bgFramebufferOffset = Vec2(0, 0);
+    bgFramebufferOffset = vec2(0, 0);
     renderer.copyFramebufferToTexture(bgFramebufferOffset, bgFramebufferTex);
     material.uniforms.bgTex.value = bgFramebufferTex;
     // material.uniforms.sX.value = 1;
@@ -653,7 +664,7 @@ const GLHeader = () => {
     // material.uniforms.oY.value = 1 * (coords.y / size.height);
     // material.uniforms.oX.value = 1 * (coords.x / size.width);
     // diff.setY(textGeoScreenSz.y / size.width * headerHeightScale / (camera.position.z / 1.125));
-    let bbSz = Vec3(0, 0, 0);
+    let bbSz = vec3(0, 0, 0);
     geometry.boundingBox.getSize(bbSz);
     textGeoScreenSz = getScreenCoords(bbSz, txtRef.current);
     diff.setX(textWorldSz.x / size.x);
@@ -724,8 +735,8 @@ const GLHeader = () => {
     maskRef.current.material.uniformsNeedUpdate = true;
   }
 
-  const UVOffset = Vec2(0, -headerHeightScale - (camera.position.y / 2.95) * 0.35);
-  const UVScale = Vec2(1, (1 - (camera.rotation.x / (Math.PI / 180 * 10)) * 0.225) / (maskTex.image.width / maskTex.image.height));
+  const UVOffset = vec2(0, -headerHeightScale - (camera.position.y / 2.95) * 0.35);
+  const UVScale = vec2(1, (1 - (camera.rotation.x / (Math.PI / 180 * 10)) * 0.225) / (maskTex.image.width / maskTex.image.height));
 
   const maskBeforeRender = (renderer, scene, camera, geometry, material, group) => {
     // if(!material.isShaderMaterial) return;
@@ -755,7 +766,7 @@ const GLHeader = () => {
     // }
   });
 
-  const txtScale = Vec3(.0055, .055 / (maskTex.image.width / (maskTex.image.height)), 1);
+  const txtScale = vec3(.0055, .055 / (maskTex.image.width / (maskTex.image.height)), 1);
   // const txtScale = Vec3(0.00973625, 0.0018, 1);
 
 
@@ -765,13 +776,13 @@ const GLHeader = () => {
         <planeGeometry args={[bgTexture.image.width * dpr, bgTexture.image.height * dpr]} />
         <meshBasicMaterial args={[{color:0x000000}]} />
       </mesh>
-      <mesh position={Vec3(0,3.5,-3)} scale={Vec3(.08,.015,1)} rotation={new THREE.Euler(Math.PI / 2, 0, 0)} renderOrder={5}>
+      <mesh position={vec3(0,3.5,-3)} scale={vec3(.08,.015,1)} rotation={new THREE.Euler(Math.PI / 2, 0, 0)} renderOrder={5}>
         <planeGeometry  />
         <meshBasicMaterial args={[{color:0x000000}]} />
       </mesh>
       <mesh scale={[0.0125, 0.06 / (maskTex.image.width / maskTex.image.height), 1]} position={[0, 3.3, 0.006]} renderOrder={1} name='bg' ref={(node) => setupBg(node)} onBeforeRender={bgBeforeRenderHandler} >
         <planeGeometry args={[size.x * dpr, size.x * dpr * headerHeightScale]} />
-        <shaderMaterial args={[planeShader({bgTex:bgTexture, glassMap: glassTex, maskMap:maskTex, maskUVScale:Vec2(2.3, 9 / (maskTex.image.width / maskTex.image.height)), maskUVOffset:Vec2(0.4,-0.1)})]} uniforms-sX-value={2.125} uniforms-sY-value={2.125 / (bgTexture.image.width / bgTexture.image.height)} uniforms-oX-value={-0.4} uniforms-oY-value={0.17} />
+        <shaderMaterial args={[planeShader({bgTex:bgTexture, glassMap: filmGrainTex, glassUVScale:vec2(1, 2 / (maskTex.image.width / maskTex.image.height)), glassUVOffset:vec2(0, 0), maskMap:maskTex, maskUVScale:vec2(2.3, 9 / (maskTex.image.width / maskTex.image.height)), maskUVOffset:vec2(0.4,-0.1)})]} uniforms-sX-value={2.125} uniforms-sY-value={2.125 / (bgTexture.image.width / bgTexture.image.height)} uniforms-oX-value={-0.4} uniforms-oY-value={0.17} />
       </mesh>
       {/* <mesh position={[0, 3, 0.2]} scale={[txtScale.x, txtScale.y, txtScale.z]} onBeforeRender={maskBeforeRender} ref={maskRef} renderOrder={2}>
         {/* <planeGeometry args={[bgFramebufferTex.image.width, bgFramebufferTex.image.height]} attributes-uv={new THREE.Float32BufferAttribute([0,1,1,1,0,0,1,0], 2)} /> */}

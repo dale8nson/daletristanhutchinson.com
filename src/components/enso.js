@@ -3,20 +3,27 @@ import * as THREE from 'three';
 import { useLoader } from '@react-three/fiber';
 import { SpinnerShader } from './shaders/shader';
 import { useThree, useFrame } from '@react-three/fiber';
+import { useVideoTexture } from '@react-three/drei';
 import enso from '../assets/enso.png';
+import filmGrain from '../assets/01156_old_film_look_with_border.webm';
 
-const Vec2 = (n1 = null, n2 = null) => new THREE.Vector2(n1, n2);
-const Vec3 = (n1 = null, n2 = null, n3 = null) => new THREE.Vector3(n1, n2, n3);
-const Vec4 = (n1 = null, n2 = null, n3 = null, n4 = null) => new THREE.Vector4(n1, n2, n3, n4);
+const vec2 = (n1 = null, n2 = null) => new THREE.Vector2(n1, n2);
+const vec3 = (n1 = null, n2 = null, n3 = null) => new THREE.Vector3(n1, n2, n3);
+const vec4 = (n1 = null, n2 = null, n3 = null, n4 = null) => new THREE.Vector4(n1, n2, n3, n4);
 
 
-const Enso = ({ position = Vec3(0, 0, 0), scale = Vec3(1, 1, 1), rotation = new THREE.Euler(0, 0, 0) }) => {
+const Enso = ({ position = vec3(0, 0, 0), scale = vec3(1, 1, 1), rotation = new THREE.Euler(0, 0, 0) }) => {
   const { gl, scene, camera } = useThree();
+
+  const filmGrainTex = useVideoTexture(filmGrain);
+  filmGrainTex.wrapS = filmGrainTex.wrapT = THREE.RepeatWrapping;
+  gl.initTexture(filmGrainTex);
 
   const mask = useLoader(THREE.TextureLoader, enso);
   mask.wrapS = mask.wrapT = THREE.RepeatWrapping;
-
   gl.initTexture(mask);
+  
+  gl.compile(scene, camera);
 
   const meshRef = useRef(null);
 
@@ -90,7 +97,7 @@ const Enso = ({ position = Vec3(0, 0, 0), scale = Vec3(1, 1, 1), rotation = new 
   return (
     <mesh position={[position.x, position.y, position.z]} scale={[scale.x, scale.y, scale.z]} rotation={new THREE.Euler(rotation.x, rotation.y, rotation.z)} ref={initMesh} >
       <circleGeometry />
-      <shaderMaterial args={[SpinnerShader({ mask: mask, color: Vec4(0.5,0.5, 0.5, 1) })]} />
+      <shaderMaterial args={[SpinnerShader({ mask: mask, filmGrainMap:filmGrainTex, filmGrainUVScale:vec2(1, 2 / (scale.x / scale.y)), color: vec4(0.5,0.5, 0.5, 1) })]} />
     </mesh>
   );
 }

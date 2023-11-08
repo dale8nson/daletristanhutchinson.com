@@ -166,6 +166,8 @@ const Shader = ({
         }
 
         gl_FragColor = vec4(red, green, blue, 1.0);
+        // gl_FragColor = vec4(0.93, 0.0, 0.0, 1.0);
+
       }
       `,
       transparent: true
@@ -230,10 +232,13 @@ const Shader = ({
 
 }
 
-const SpinnerShader = ({mask=null, color=vec4(1,1,1,1), alpha=1.0, theta=(Math.PI / 180) * 255, thetaLength=((Math.PI / 180) * 360)}) => {
+const SpinnerShader = ({mask=null, filmGrainMap=null, filmGrainUVScale=vec2(1,1), filmGrainUVOffset=vec2(0,0), color=vec4(1,1,1,1), alpha=1.0, theta=(Math.PI / 180) * 255, thetaLength=((Math.PI / 180) * 360)}) => {
   const shader =  {
     uniforms: {
       mask: { value: mask },
+      filmGrainMap: { value: filmGrainMap },
+      filmGrainUVScale: { value: filmGrainUVScale },
+      filmGrainUVOffset: { value: filmGrainUVOffset },
       color: { value: color },
       alpha: { value: alpha },
       theta: { value: theta },
@@ -242,7 +247,8 @@ const SpinnerShader = ({mask=null, color=vec4(1,1,1,1), alpha=1.0, theta=(Math.P
     },
     vertexShader: vertexPass,
     fragmentShader: `
-      uniform sampler2D mask;
+      uniform sampler2D mask, filmGrainMap;
+      uniform vec2 filmGrainUVScale, filmGrainUVOffset;
       uniform vec4 color;
       uniform float alpha, theta, thetaLength, PI;
 
@@ -268,8 +274,32 @@ const SpinnerShader = ({mask=null, color=vec4(1,1,1,1), alpha=1.0, theta=(Math.P
         if (maskColor.r > 0.9) {
           discard;
         }
+        
+        vec2 filmGrainScale = vUv * filmGrainUVScale + filmGrainUVOffset;
+        vec4 filmGrainCol = texture2D(filmGrainMap, filmGrainScale);
 
-        gl_FragColor = vec4(color.rgb, alpha);
+        float red, green, blue;
+        red = color.r;
+        green = color.g;
+        blue = color.b;
+
+        if (filmGrainCol.r <= 1.0) {
+        
+          // red = filmGrainCol.r;
+          // green = filmGrainCol.g;
+          // blue = filmGrainCol.b;
+          red -= filmGrainCol.r * 0.3;
+          green -= filmGrainCol.r * 0.3;
+          blue -= filmGrainCol.r * 0.3;
+          // red -= filmGrainCol.r * 0.3;
+          // green = 0.0;
+          // blue = 0.0;
+  
+          // alpha = glassCol.r * 0.8;
+          // discard;
+        }
+
+        gl_FragColor = vec4(red, green, blue, alpha);
       }
       `
   }

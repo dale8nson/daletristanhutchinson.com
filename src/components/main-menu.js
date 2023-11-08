@@ -1,6 +1,7 @@
 import { withPrefix } from "gatsby";
 import parchment from '../assets/Texturelabs_Glass_151L.jpg';
 
+
 const MainMenu = () => {
   console.log(`parchment: ${parchment}`);
   return (
