@@ -1,3 +1,18 @@
+@font-face {
+  font-family: 'tensho';
+  src: url('../assets/fonts/hktenng.ttf');
+}
+
+@font-face {
+  font-family: 'kouzan-brush';
+  src: url('../assets/fonts/KouzanBrushFontSousyo.ttf');
+}
+
+@font-face {
+  font-family: 'lemon-tuesday';
+  src: url('../assets/fonts/Lemon\ Tuesday.otf');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

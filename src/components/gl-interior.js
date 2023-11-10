@@ -501,7 +501,6 @@ const Strut2 = ({scale=vec3(1,1,1), position=vec3(0,0,0), UVScale=vec2(1,1), UVO
       <planeGeometry args={[tex.image.width * dpr, tex.image.height * dpr]} />
       {/* <shaderMaterial args={[Shader({map:tex, UVScale:Vec2(1,  1 / (scale.x / scale.y)), UVOffset:Vec2(Math.random() * 0.3, 0) , greyOffset: -0.3, greyScale: true, greyMinCutoff:0.0, greyRange:Vec2(0.0, 0.4)})]} wireframe={false} /> */}
       <shaderMaterial args={[Shader({map:tex, UVScale:vec2(UVScale.x,  UVScale.y / (tex.image.width / tex.image.height)), UVOffset:UVOffset , greyOffset: -0.3, greyScale: true, greyMinCutoff:0.0, greyRange:vec2(0.0, 0.4)})]} wireframe={false} />
-
     </instancedMesh>
   );
 }
@@ -688,15 +687,15 @@ const GLInterior = (props) => {
   // console.log(`camera:`, camera);
 
   // camera.position.z = 5;
-  camera.position.z = 3;
-  camera.position.y = -0.925;
-  camera.position.x = 3.375;
+  camera.position.z = 2;
+  camera.position.y = -1.05;
+  camera.position.x = 2;
   camera.rotation.y = 0;
   camera.rotation.x = 0;
 
-  // camera.position.z = 5;
-  // camera.position.y = 0;
-  // camera.position.x = -5;
+  // camera.position.z = -8;
+  // camera.position.y = 3.1;
+  // camera.position.x = -1.2;
   // camera.rotation.y = 0;
   // camera.rotation.x = (Math.PI / 180 * 10);
 
@@ -726,10 +725,10 @@ const GLInterior = (props) => {
   // camera.rotation.x = (Math.PI / 180 * 10);
   
   let camAnimMixer, camPanXTrack, camPanYTrack, camPanZTrack, camRotXTrack, camAnimClip, camAnimAction;
-  camPanXTrack = new THREE.NumberKeyframeTrack('.position[x]',[0,6.5,9,12,14], [-8,0,-2,-2, 3.375],THREE.InterpolateSmooth);
-  camPanYTrack = new THREE.NumberKeyframeTrack('.position[y]',[0,9,12,13,14], [2.9, 2, -0.4,-0.925,-0.925],THREE.InterpolateSmooth);
-  camPanZTrack = new THREE.NumberKeyframeTrack('.position[z]',[0,4,6.5,9,12,14], [1.2, 1.2,4.5,4.5, 3.75, 3],THREE.InterpolateSmooth);
-  camRotXTrack = new THREE.NumberKeyframeTrack('.rotation[x]',[0,9,12,14,16], [0, 0, (Math.PI / 180 * 10),-(Math.PI / 180 * 4),  0],THREE.InterpolateSmooth);
+  camPanXTrack = new THREE.NumberKeyframeTrack('.position[x]',[0,6.5,9,12,14], [-8,3,3,0, 2],THREE.InterpolateLinear);
+  camPanYTrack = new THREE.NumberKeyframeTrack('.position[y]',[0,6.5,9,12,14], [3.1, 3.1, -0.4,-1.05,-1.05],THREE.InterpolateLinear);
+  camPanZTrack = new THREE.NumberKeyframeTrack('.position[z]',[0,6.5,9,11,14], [1.2, 1.2,4.5,4.5, 2],THREE.InterpolateLinear);
+  camRotXTrack = new THREE.NumberKeyframeTrack('.rotation[x]',[0,6.5,9,12,14, 16], [0, 0, (Math.PI / 180 * 10),(Math.PI / 180 * 10), -(Math.PI / 180 * 4),  0],THREE.InterpolateSmooth);
 
   // camZoomTrack = new THREE.NumberKeyframeTrack('.zoom',[0,10,11], [64,64,1], THREE.InterpolateSmooth);
   camAnimClip = new THREE.AnimationClip('camAm',16,[camPanXTrack,camPanYTrack,camPanZTrack,camRotXTrack]);

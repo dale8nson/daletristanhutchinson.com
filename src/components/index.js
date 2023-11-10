@@ -19,7 +19,8 @@ import GLInterior from './gl-interior';
 import WebGLCanvas from './webgl-canvas';
 import Enso from './enso';
 import MainMenu from './main-menu';
-import GLUI from './gl-ui';
+import GlUi from './gl-ui';
+import Jitsuin from './jitsuin';
 
 
 export {
@@ -43,5 +44,6 @@ export {
   GLInterior,
   Enso,
   MainMenu,
-  GLUI
+  GlUi,
+  Jitsuin
 };

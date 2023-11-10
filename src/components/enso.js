@@ -4,7 +4,7 @@ import { useLoader } from '@react-three/fiber';
 import { SpinnerShader } from './shaders/shader';
 import { useThree, useFrame } from '@react-three/fiber';
 import { useVideoTexture } from '@react-three/drei';
-import enso from '../assets/enso.png';
+import enso from '../assets/enso-scaled.png';
 import filmGrain from '../assets/01156_old_film_look_with_border.webm';
 
 const vec2 = (n1 = null, n2 = null) => new THREE.Vector2(n1, n2);
@@ -15,12 +15,18 @@ const vec4 = (n1 = null, n2 = null, n3 = null, n4 = null) => new THREE.Vector4(n
 const Enso = ({ position = vec3(0, 0, 0), scale = vec3(1, 1, 1), rotation = new THREE.Euler(0, 0, 0) }) => {
   const { gl, scene, camera } = useThree();
 
+  const dpr = gl.getPixelRatio();
+
+  const size = vec3(0,0,0);
+  gl.getSize(size);
+
   const filmGrainTex = useVideoTexture(filmGrain);
   filmGrainTex.wrapS = filmGrainTex.wrapT = THREE.RepeatWrapping;
   gl.initTexture(filmGrainTex);
 
   const mask = useLoader(THREE.TextureLoader, enso);
   mask.wrapS = mask.wrapT = THREE.RepeatWrapping;
+  mask.repeat = vec2(1,1);
   gl.initTexture(mask);
   
   gl.compile(scene, camera);
@@ -96,8 +102,9 @@ const Enso = ({ position = vec3(0, 0, 0), scale = vec3(1, 1, 1), rotation = new 
   gl.compile(scene, camera);
   return (
     <mesh position={[position.x, position.y, position.z]} scale={[scale.x, scale.y, scale.z]} rotation={new THREE.Euler(rotation.x, rotation.y, rotation.z)} ref={initMesh} >
-      <circleGeometry />
-      <shaderMaterial args={[SpinnerShader({ mask: mask, filmGrainMap:filmGrainTex, filmGrainUVScale:vec2(1, 2 / (scale.x / scale.y)), color: vec4(0.5,0.5, 0.5, 1) })]} />
+      {/* <circleGeometry /> */}
+      <planeGeometry args={[mask.image.width * dpr, mask.image.height * dpr]} />
+      <shaderMaterial args={[SpinnerShader({ mask: mask, UVScale:vec2(1.8, 1.8 / (scale.x / scale.y) ), UVOffset:vec2(-0.15, 0.15), filmGrainMap:filmGrainTex, filmGrainUVScale:vec2(0.5, 0.5 / (scale.x / scale.y)), filmGrainUVOffset:vec2(0.2,0.1), color: vec4(0.2,0.2, 0.2, 1) })]} wireframe={false} />
     </mesh>
   );
 }

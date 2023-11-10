@@ -25,6 +25,11 @@ const Shader = ({
   map2Color,
   map2UVOffset,
   map2MaxCutoff,
+  useMap3,
+  map3,
+  map3UVScale,
+  map3UVOffset,
+  edge,
   useBackMap,
   backMap,
   antialias, 
@@ -58,6 +63,11 @@ const Shader = ({
       map2UVScale: {value: map2UVScale || vec2(1,1)},
       map2UVOffset: {value: map2UVOffset || vec2(1,1)},
       map2MaxCutoff: { value: map2MaxCutoff || 0.6},
+      useMap3: { value: useMap3 || false},
+      map3: { value: map3 || null },
+      map3UVScale: { value: map3UVScale || vec2(1,1) },
+      map3UVOffset: { value: map3UVOffset || vec2(0,0) },
+      edge: { value: edge || 0 },
       useBackMap: {value: useBackMap || false},
       backMap: {value: backMap || null},
       antialias: {value: antialias || false},  
@@ -84,11 +94,11 @@ const Shader = ({
     vertexShader: vertexPass,
     fragmentShader: `
       
-      uniform int colorsSelectCount;
-      uniform sampler2D map, map2, backMap;
+      uniform int colorsSelectCount, edge;
+      uniform sampler2D map, map2, map3, backMap;
       uniform vec3 RGBScale, RGBOffset, map2Color;
-      uniform vec2 UVScale, UVOffset, map2UVScale, map2UVOffset, redRange, greenRange, blueRange, greyRange, alphaRange;
-      uniform bool useMap2, useBackMap, antialias, greyScale, useColorSelect;
+      uniform vec2 UVScale, UVOffset, map2UVScale, map2UVOffset, map3UVScale, map3UVOffset, redRange, greenRange, blueRange, greyRange, alphaRange;
+      uniform bool useMap2, useMap3, useBackMap, antialias, greyScale, useColorSelect;
       uniform float alphaMinCutoff, alphaMaxCutoff, map2Scale, map2MaxCutoff, greyOffset, greyMinCutoff, greyMaxCutoff, negative;
       
 
@@ -127,7 +137,7 @@ const Shader = ({
           //     }
           //   }
           // }
-          if(useColorSelect) {
+          if (useColorSelect) {
             if(col.r >= redRange.x && col.r <= redRange.y
             && col.g >= greenRange.x && col.g <= greenRange.y 
             && col.b >= blueRange.x && col.b <= blueRange.y) { 
@@ -149,9 +159,6 @@ const Shader = ({
             ) { red = green = blue = 0.0; }
         }
 
-        if(grey < greyMinCutoff || grey > greyMaxCutoff ||
-          col.a < alphaMinCutoff || col.a > alphaMaxCutoff) { discard; }
-
         if(useMap2) {
           vec2 map2Scaled = vec2(vUv.x * map2UVScale.x + map2UVOffset.x, vUv.y * map2UVScale.y + map2UVOffset.y );
           vec4 map2Col = texture2D(map2, map2Scaled);
@@ -165,7 +172,80 @@ const Shader = ({
 
         }
 
+        if(useMap3) {
+
+          vec2 map3Scale = (1.0 - vUv) * map3UVScale + map3UVOffset;
+
+          vec4 col = texture2D(map3, map3Scale);
+
+          float map3Grey;
+
+          switch(edge) {
+            
+            case 1:
+              
+              vec4 colRt = texture2D(map3, vec2(1.0, map3Scale.y));
+              map3Grey = (colRt.r + colRt.g + colRt.b) / 3.0;
+
+              red -= map3Grey * (1.0 - scaledUV.x + greyOffset);
+              green -= map3Grey * (1.0 - scaledUV.x + greyOffset);
+              blue -= map3Grey * (1.0 - scaledUV.x + greyOffset);
+
+              // red += map3Grey + greyOffset;
+              // green += map3Grey + greyOffset;
+              // blue += map3Grey + greyOffset;
+
+              break;
+
+            case 2:
+              vec4 colBtm = texture2D(map3, vec2(map3Scale.x, 1.0));
+
+              map3Grey = (colBtm.r + colBtm.g + colBtm.b) / 3.0;
+
+              // red += map3Grey * (1.0 - scaledUV.y + greyOffset);
+              // green += map3Grey * (1.0 - scaledUV.y + greyOffset);
+              // blue += map3Grey * (1.0 - scaledUV.y + greyOffset);
+
+              red += map3Grey * (scaledUV.y + greyOffset);
+              green += map3Grey * (scaledUV.y + greyOffset);
+              blue += map3Grey * (scaledUV.y + greyOffset);
+
+              // red += map3Grey + greyOffset;
+              // green += map3Grey + greyOffset;
+              // blue += map3Grey + greyOffset;
+
+              break;
+
+            case 3:
+              vec4 colLt = texture2D(map3, vec2(0.01, map3Scale.y));
+              map3Grey = (colLt.r + colLt.g + colLt.b) / 3.0;
+
+              red += map3Grey * (scaledUV.x + greyOffset);
+              green += map3Grey * (scaledUV.x + greyOffset);
+              blue += map3Grey * (scaledUV.x + greyOffset);
+
+              // red += map3Grey + greyOffset;
+              // green += map3Grey + greyOffset;
+              // blue += map3Grey +greyOffset;
+
+              break;
+            
+            default:
+              vec4 colTp = texture2D(map3, vec2(map3Scale.x, 0.01));
+              map3Grey = (colTp.r + colTp.g + colTp.b) / 3.0;
+
+              red += map3Grey + greyOffset;
+              green += map3Grey + greyOffset;
+              blue += map3Grey +greyOffset;
+
+          }
+        }
+
+        if(grey < greyMinCutoff || grey > greyMaxCutoff ||
+          col.a < alphaMinCutoff || col.a > alphaMaxCutoff) { discard; }
+
         gl_FragColor = vec4(red, green, blue, 1.0);
+
         // gl_FragColor = vec4(0.93, 0.0, 0.0, 1.0);
 
       }
@@ -232,10 +312,12 @@ const Shader = ({
 
 }
 
-const SpinnerShader = ({mask=null, filmGrainMap=null, filmGrainUVScale=vec2(1,1), filmGrainUVOffset=vec2(0,0), color=vec4(1,1,1,1), alpha=1.0, theta=(Math.PI / 180) * 255, thetaLength=((Math.PI / 180) * 360)}) => {
+const SpinnerShader = ({mask=null, UVScale=vec2(1,1), UVOffset=vec2(0,0), filmGrainMap=null, filmGrainUVScale=vec2(1,1), filmGrainUVOffset=vec2(0,0), color=vec4(1,1,1,1), alpha=1.0, theta=(Math.PI / 180) * 255, thetaLength=((Math.PI / 180) * 360)}) => {
   const shader =  {
     uniforms: {
       mask: { value: mask },
+      UVScale: { value: UVScale },
+      UVOffset: { value: UVOffset },
       filmGrainMap: { value: filmGrainMap },
       filmGrainUVScale: { value: filmGrainUVScale },
       filmGrainUVOffset: { value: filmGrainUVOffset },
@@ -248,7 +330,7 @@ const SpinnerShader = ({mask=null, filmGrainMap=null, filmGrainUVScale=vec2(1,1)
     vertexShader: vertexPass,
     fragmentShader: `
       uniform sampler2D mask, filmGrainMap;
-      uniform vec2 filmGrainUVScale, filmGrainUVOffset;
+      uniform vec2 UVScale, UVOffset, filmGrainUVScale, filmGrainUVOffset;
       uniform vec4 color;
       uniform float alpha, theta, thetaLength, PI;
 
@@ -257,6 +339,8 @@ const SpinnerShader = ({mask=null, filmGrainMap=null, filmGrainUVScale=vec2(1,1)
       void main() {
         float uvX = vUv.x - 0.5;
         float uvY = vUv.y - 0.5;
+
+        
         
         float uvTheta = (atan(uvY, uvX));
 
@@ -270,10 +354,7 @@ const SpinnerShader = ({mask=null, filmGrainMap=null, filmGrainUVScale=vec2(1,1)
         // if (uvTheta > theta) {
         //   discard;
         // }
-        vec4 maskColor = texture2D(mask, vUv);
-        if (maskColor.r > 0.9) {
-          discard;
-        }
+        
         
         vec2 filmGrainScale = vUv * filmGrainUVScale + filmGrainUVOffset;
         vec4 filmGrainCol = texture2D(filmGrainMap, filmGrainScale);
@@ -283,14 +364,23 @@ const SpinnerShader = ({mask=null, filmGrainMap=null, filmGrainUVScale=vec2(1,1)
         green = color.g;
         blue = color.b;
 
+        vec2 maskScale = vUv * UVScale + UVOffset;
+
+        vec4 maskColor = texture2D(mask, maskScale);
+        if (maskColor.r > 0.9) {
+          // discard;
+          red = green = blue = 0.0;
+
+        }
+
         if (filmGrainCol.r <= 1.0) {
         
           // red = filmGrainCol.r;
           // green = filmGrainCol.g;
           // blue = filmGrainCol.b;
-          red -= filmGrainCol.r * 0.3;
-          green -= filmGrainCol.r * 0.3;
-          blue -= filmGrainCol.r * 0.3;
+          red += filmGrainCol.r * 0.3;
+          green += filmGrainCol.r * 0.3;
+          blue += filmGrainCol.r * 0.3;
           // red -= filmGrainCol.r * 0.3;
           // green = 0.0;
           // blue = 0.0;
@@ -299,7 +389,11 @@ const SpinnerShader = ({mask=null, filmGrainMap=null, filmGrainUVScale=vec2(1,1)
           // discard;
         }
 
+        
+
         gl_FragColor = vec4(red, green, blue, alpha);
+        // gl_FragColor = vec4(0.93, 0.0, 0.0, 1.0);
+
       }
       `
   }

@@ -1,7 +1,7 @@
 
-import { useEffect, useRef, useState, Suspense } from 'react';
+import { useEffect, useRef, useState, Suspense, preventDefault } from 'react';
 import  { WebGLCanvas, Enso } from '../components';
-import { Seo,Layout, GLHeader, GLInterior, MainMenu, GLUI } from '../components';
+import { Seo,Layout, GLHeader, GLInterior, MainMenu, GlUi } from '../components';
 import './scss/_index.scss';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -31,16 +31,17 @@ const IndexPage = () => {
   
   return (
     <>
-      <Canvas id='canvas' onScroll={() => null} >
+      <Canvas id='canvas' onScroll={() => preventDefault()} >
       {/* <ambientLight />  */}
-        {/* <Enso scale={vec3(1,1,1)} /> */}
-        <Suspense fallback={<Enso position={vec3(3.5,-.7,0)} scale={vec3(1.5, 1.5, 1)} />} >
-          <directionalLight position={new THREE.Vector3(-40,0,10)} args={[0xffffff, 1.2]} castShadow={false} />
-          <directionalLight position={new THREE.Vector3(40,0,10)} args={[0xffffff, 1.2]} castShadow={false} />
+      {/* <Enso position={vec3(3.5,-0.95,0)} scale={vec3(.004125, .0015, 1)} /> */}
+        <directionalLight position={new THREE.Vector3(-40,0,10)} args={[0xffffff, 1.2]} castShadow={false} />
+        <directionalLight position={new THREE.Vector3(40,0,10)} args={[0xffffff, 1.2]} castShadow={false} />
+        {/* <Suspense fallback={<Enso position={vec3(3.5,-.7,0)} scale={vec3(1.5, 1.5, 1)} />} > */}
+         <Suspense fallback={<Enso position={vec3(3.5,-0.95,0)} scale={vec3(.004125, .0015, 1)} />} >
           <GLHeader />
           <GLInterior />
+          <GlUi />
         </Suspense>
-        {/* <GLUI /> */}
       </Canvas>
     {/* {isMounted && <WebGLCanvas /> } */}
       <div id='ui' >

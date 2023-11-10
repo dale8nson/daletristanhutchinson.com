@@ -1,4 +1,4 @@
-$canvas-width: 100vw;
+$canvas-width: 95vw;
 
 body {
   background: #000;
@@ -17,7 +17,7 @@ body {
   left: 0;
   width: $canvas-width;
   // height: calc($canvas-width / 1.8306351183063512) !important;
-  height: calc($canvas-width / 1.5978260869565217 - 5vh) !important;
+  height: calc($canvas-width / (16 / 9)) !important;
 }
 
 #ui {

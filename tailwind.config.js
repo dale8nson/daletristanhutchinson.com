@@ -3,10 +3,7 @@
 // console.log(`parchment: ${parchment}`);
 
 module.exports = {
-  purge: [
-    './src/**/*.js',
-    './src/**/*.tsx'
-  ],
+  
   content: [
     "./src/components/**/*.{js,jsx,ts,tsx}", 
     "./src/pages/**/*.{js,jsx,ts,tsx}"
@@ -15,6 +12,10 @@ module.exports = {
     extend: {
       colors: {
         'japan-red':'#ee0000'
+      },
+      fontFamily: {
+        display: ['lemon-tuesday'],
+        mono: ['kouzan-brush']
       },
       backgroundImage: {
         'parchment':'url("/static/Texturelabs_Glass_151L-3d951d45321a08ca8d230b176f3e3699.jpg")'
