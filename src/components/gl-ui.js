@@ -68,8 +68,9 @@ const GlUi = () => {
   const bottomScale = vec3(0.395, -0.55, 1.0).multiplyScalar(scaleFactor);
 
   const position = vec3(1.84, -1.15, -0.4);
+
   return (
-    <>
+    <group>
     <mesh position={[position.x - 0.025, position.y + 0.3, position.z]} scale={[0.805 * scaleFactor, 0.8 * scaleFactor, 1]} rotation={new THREE.Euler(0, 0, 0)} >
       <planeGeometry args={[kjTex.image.width * dpr, kjTex.image.height * dpr]} />
       <shaderMaterial args={[Shader({
@@ -101,7 +102,7 @@ const GlUi = () => {
           wireframe={false}  
         />
     </mesh>
-    <mesh position={[position.x - 0.015, position.y + 0.05, position.z + 0.1]} scale={[scaleFactor, scaleFactor, 1]} rotation={new THREE.Euler(0,0, 0)} renderOrder={7} >
+    <mesh position={[position.x - 0.015, position.y + 0.05, position.z + 0.0001]} scale={[scaleFactor, scaleFactor, 1]} rotation={new THREE.Euler(0,0, 0)} renderOrder={7} >
       <planeGeometry args={[405 * dpr, 720 * dpr]} />
       <shaderMaterial args={[Shader({
         map:natureSceneTex, 
@@ -130,7 +131,7 @@ const GlUi = () => {
         opacity={1.0}
         wireframe={false}  
       />
-      <Html position={[0,250,position.z + 0.45]} scale={[275,275,1]} occlude wrapperClass='block absolute top-4 inset-x-0' transform distanceFactor={10} >
+      <Html position={[0,250,position.z + 0.41]} scale={[275,275,.1]} occlude wrapperClass='block absolute top-4 inset-x-0' transform distanceFactor={10} >
         <menu>
           <li><button><h1 className='text-sm font-[lemon-tuesday] grayscale-0 font-bold text-japan-red hover:text-red-900'>About Me</h1></button></li>
           <li><button><h1 className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900' >About This Site</h1></button></li>
@@ -142,7 +143,7 @@ const GlUi = () => {
         <Jitsuin />
       </Html>
     </mesh>
-    </>
+    </group>
   );
 }
 

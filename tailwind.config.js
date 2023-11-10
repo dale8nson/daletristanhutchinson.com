@@ -15,7 +15,7 @@ module.exports = {
       },
       fontFamily: {
         display: ['lemon-tuesday'],
-        mono: ['kouzan-brush']
+        mono: ['tensho']
       },
       backgroundImage: {
         'parchment':'url("/static/Texturelabs_Glass_151L-3d951d45321a08ca8d230b176f3e3699.jpg")'
