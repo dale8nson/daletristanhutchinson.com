@@ -1,7 +1,9 @@
+import * as React from 'react';
+import { useRef, useMemo, useCallback } from 'react';
 import * as THREE from 'three';
-import { useLoader, useThree, mesh, planeGeometry  } from '@react-three/fiber';
-import { Shader } from "./shaders/shader";
-import { Html, useVideoTexture } from "@react-three/drei";
+import { useLoader, useThree, planeGeometry, useFrame } from '@react-three/fiber';
+import { Shader, HtmlShader } from "./shaders/shader";
+import { Html, useVideoTexture, Text } from "@react-three/drei";
 import { Jitsuin } from '../components';
 import parchment from '../assets/Texturelabs_Glass_151L.jpg';
 import sumiE from '../assets/david-emrich-VCM99u6HltA-unsplash copy.jpg';
@@ -15,41 +17,25 @@ import washi5 from '../assets/washi-edge-5.webp';
 import washi6 from '../assets/washi-edge-6.webp';
 import kakejiku from '../assets/kakejiku.png';
 
-
 const vec2 = (n1, n2) => new THREE.Vector2(n1, n2);
 const vec3 = (n1, n2, n3) => new THREE.Vector3(n1, n2, n3);
 const vec4 = (n1, n2, n3, n4) => new THREE.Vector4(n1, n2, n3, n4);
 
-
-const MainMenuBg = () => {
-  const parchmentTex = useLoader(THREE.TextureLoader, parchment);
-  parchmentTex.wrapS = parchmentTex.wrapT =  THREE.RepeatWrapping;
-  const sumiETex = useLoader(THREE.TextureLoader, sumiE);
-  sumiETex.wrapS = parchmentTex.wrapT =  THREE.RepeatWrapping;
-  const inkTex = useLoader(THREE.TextureLoader, ink);
-  inkTex.wrapS = inkTex.wrapT =  THREE.RepeatWrapping;
-  
-
-  return (
-    <mesh scale={[0.00159, 0.00145, 1]} position={[1.8426, -1, 0]}>
-      <planeGeometry args={[sumiETex.image.width, sumiETex.image.height]} />
-      <shaderMaterial args={[Shader({map:sumiETex, map2:inkTex, useMap2:true, UVScale:vec2(1,1), UVOffset:vec2(0, 0), map2Scale:1, map2Color:vec3(-0.8,-0.8,-0.8), map2UVScale:vec2(0.4,0.4), map2UVOffset:vec2(0, 0.0), greyScale:true, greyOffset:0.2, greyRange:vec2(0.3, 0.5), greyMinCutoff:0.0 , greyMaxCutoff:2, map2MaxCutoff:-1, RGBOffset:vec3(-0.0, -0.0, -0.0), redRange:vec2(0.63,0.95), greenRange:vec2(0,0.6), blueRange:vec2(0,0.6), alpha:1, useColorSelect:false, negative:0}  )]} transparent={true} opacity={0.5} />
-    </mesh>
-  );
-}
-
 const GlUi = () => {
-  const { gl } = useThree();
+  const { gl, camera, scene } = useThree();
+  console.log(`gl:`, gl);
   const dpr = gl.getPixelRatio();
+  const size = vec2(0,0);
+  gl.getSize(size);
 
   const natureSceneTex = useVideoTexture(natureScene);
   natureSceneTex.wrapS = natureSceneTex.wrapT = THREE.RepeatWrapping;
   const parchmentTex = useLoader(THREE.TextureLoader, parchment);
-  parchmentTex.wrapS = parchmentTex.wrapT =  THREE.RepeatWrapping;
+  parchmentTex.wrapS = parchmentTex.wrapT = THREE.RepeatWrapping;
   const sumiETex = useLoader(THREE.TextureLoader, sumiE);
-  sumiETex.wrapS = parchmentTex.wrapT =  THREE.RepeatWrapping;
+  sumiETex.wrapS = parchmentTex.wrapT = THREE.RepeatWrapping;
   const inkTex = useLoader(THREE.TextureLoader, ink);
-  inkTex.wrapS = inkTex.wrapT =  THREE.RepeatWrapping;
+  inkTex.wrapS = inkTex.wrapT = THREE.RepeatWrapping;
   const washiTex1 = useLoader(THREE.TextureLoader, washi1);
   washiTex1.wrapS = washiTex1.wrapT = THREE.MirroredRepeatWrapping;
   const washiTex2 = useLoader(THREE.TextureLoader, washi2);
@@ -60,8 +46,165 @@ const GlUi = () => {
   washiTex4.wrapS = washiTex4.wrapT = THREE.MirroredRepeatWrapping;
   const kjTex = useLoader(THREE.TextureLoader, kakejiku);
 
+  const mmRef = useRef(null);
+  const pictureRef = useRef(null);
+  const htmlRef = useRef(null);
+  const htmlMaterialRef = useRef(null);
+  const htmlMainMenuRef = useRef(null);
 
-  const scaleFactor = 0.00175;
+  let mmMixer = null, mmAlphaTrack, mmClip, mmFadeIn;
+
+  mmAlphaTrack = new THREE.NumberKeyframeTrack('.opacity', [0, 14, 15], [0, 0, 1]);
+  mmClip = new THREE.AnimationClip('', 15, [mmAlphaTrack]);
+
+
+
+  const HtmlMainMenu = useCallback(() => {
+    return (
+      <Html position={[0, 0, 0]} scale={[1, 1, 1]} occlude='blending' distanceFactor={10} renderOrder={5} ref={console.log} >
+        <div>
+          <menu style={{ zIndex: 100 }}>
+            <li><button><span className='text-sm font-[lemon-tuesday] grayscale-0 font-bold text-japan-red hover:text-red-900'>About Me</span></button></li>
+            <li><button><span className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900' >About This Site</span></button></li>
+            <li><button><span className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900'>My Resume</span></button></li>
+            <li><button><span className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900'>Contact</span></button></li>
+          </menu>
+        </div>
+      </Html>
+    )
+  }, []);
+
+  
+  
+  const htmlFrameBuffer = new THREE.FramebufferTexture(405 * dpr, 720 * dpr);
+  htmlFrameBuffer.wrapS = htmlFrameBuffer.wrapT = THREE.RepeatWrapping;
+  htmlFrameBuffer.format = THREE.RGBAFormat;
+  // const htmlFrameBufferOffset = vec2(size.width / 2 - htmlFrameBuffer.image.width / 2, size.height / 2 - htmlFrameBuffer.image.height / 2);
+  const htmlFrameBufferOffset = vec2(size.width / 2 - htmlFrameBuffer.image.width / 2, size.height / 2 - htmlFrameBuffer.image.height / 2);
+  console.log(`htmlFrameBuffer:`, htmlFrameBuffer);
+  const htmlRenderTarget = new THREE.WebGLRenderTarget();
+  const htmlScene = new THREE.Scene();
+  const htmlRenderer = gl;
+  const htmlCamera = camera.clone();
+  const ambientLight = new THREE.AmbientLight(0xee0000, 1.0);
+  
+
+  const renderHtml = (renderer, html) => {
+    // htmlScene.add(ambientLight);
+
+    // htmlScene.add(<pointLight position={new THREE.Vector3(-40,0,10)} args={[0xffffff, 1.2]} castShadow={false} />);
+    // htmlScene.add(html);
+    // gl.setRenderTarget(htmlRenderTarget);
+    // gl.render(scene, camera);
+    renderer.copyFrameBufferToTexture(htmlFrameBufferOffset, htmlFrameBuffer);
+    // gl.setRenderTarget(null);
+  }
+  // , [htmlRenderer, htmlCamera, htmlFrameBuffer, htmlFrameBufferOffset, htmlRenderTarget]);
+  
+
+  const initUI = node => {
+    if (!node) return;
+    mmRef.current = node;
+    const nodeRef = mmRef.current;
+
+    if (!Object.hasOwn(nodeRef, 'opacity')) {
+      Object.defineProperties(nodeRef, {
+        _opacity: {
+          value: 1.0,
+          writable: true
+        },
+        opacity: {
+          get() { return this._opacity; },
+          set(val) {
+            this.traverse(node => {
+              if (node.material) {
+                // console.log(`node.material:`, node.material);
+                if (node.isMesh && node.material.uniforms?.opacity?.value) {
+                  node.material.uniforms.opacity.value = val;
+                  node.material.uniformsNeedUpdate = true;
+                }
+                if (!node.isMesh && node.style) {
+                  node.style.opacity = val;
+                }
+              }
+            });
+            this._opacity = val;
+            console.log(`opacity: ${val}`);
+          }
+        }
+      })
+    }
+
+    console.log(`mmRef.current:`, nodeRef);
+
+    mmMixer = new THREE.AnimationMixer(nodeRef);
+    mmFadeIn = mmMixer.clipAction(mmClip);
+    mmFadeIn.clampWhenFinished = true;
+    mmFadeIn.loop = THREE.LoopOnce;
+    // mmFadeIn.play();
+  }
+
+  const initHtml = node => {
+    if(!node) return;
+    htmlRef.current = node;
+    console.log(`htmlRef.current:`, htmlRef.current);
+    // gl.setRenderTarget(htmlRenderTarget);
+    // htmlScene.clear();
+    // htmlScene.add(htmlRef.current);
+    // gl.render(htmlScene, camera);
+    gl.copyFramebufferToTexture(htmlFrameBufferOffset, htmlFrameBuffer);
+    // gl.setRenderTarget(null);
+  }
+
+  const htmlOnOcclude = visible => {
+    console.log(`visible:`, visible);
+    if(visible) {
+      htmlRef.current.classList.add('opacity-0');
+    }
+    if(!visible) {
+      htmlRef.current.classList.remove('opacity-0');
+    }
+  }
+
+  const HtmlMesh = () => { 
+    return (
+      <mesh>
+        <planeGeometry />
+        <meshBasicMaterial />
+        <Html>
+          <h1>Test</h1>
+        </Html>
+      </mesh>
+  )};
+
+
+  const htmlBeforeRender = (renderer, scene, camera, geometry, material, group) => {
+    if (htmlRef.current) {
+      
+      // renderHtml(htmlRef.current);
+      // renderer.copyFrameBufferToTexture(htmlFrameBufferOffset, htmlFrameBuffer);
+      // material.uniforms.map.value = htmlFrameBuffer;
+      // material.uniformsNeedUpdate = true;
+      // renderer.setRenderTarget(htmlRenderTarget);
+      // htmlScene.clear();
+      // htmlScene.add(HtmlMesh);
+      // renderer.render(htmlScene, camera);
+      renderer.copyFramebufferToTexture(htmlFrameBufferOffset, htmlFrameBuffer);
+      // renderer.setRenderTarget(null);
+      // htmlRef.current.material.uniforms.map.value = htmlFrameBuffer;
+      // htmlRef.current.material.uniformsNeedUpdate = true;
+    }
+  }
+
+  useFrame((_, delta) => {
+    mmRef.current && mmMixer?.update(delta);
+    // gl.copyFramebufferToTexture(htmlFrameBufferOffset, htmlFrameBuffer);
+  }
+  );
+
+  // const scaleFactor = 0.00175;
+  const scaleFactor = 1;
+
   const topScale = vec3(0.415, 0.55, 1.0).multiplyScalar(scaleFactor);
   const leftScale = vec3(0.725, 0.6, 1.0).multiplyScalar(scaleFactor);
   const rightScale = vec3(.706, -0.6, 1.0).multiplyScalar(scaleFactor);
@@ -70,79 +213,117 @@ const GlUi = () => {
   const position = vec3(1.84, -1.15, -0.4);
 
   return (
-    <group>
-    <mesh position={[position.x - 0.025, position.y + 0.3, position.z]} scale={[0.805 * scaleFactor, 0.8 * scaleFactor, 1]} rotation={new THREE.Euler(0, 0, 0)} >
-      <planeGeometry args={[kjTex.image.width * dpr, kjTex.image.height * dpr]} />
-      <shaderMaterial args={[Shader({
-          map:kjTex, 
+    <group >
+      <mesh position={[position.x, position.y + 0.4, position.z - 0.2]} scale={[.0015, .0015, 1]} rotation={new THREE.Euler(0, 0, 0)} >
+        <planeGeometry args={[kjTex.image.width * dpr, kjTex.image.height * dpr]} />
+        <shaderMaterial args={[Shader({
+          map: kjTex,
+          map2: inkTex,
+          useMap2: true,
+          UVScale: vec2(1, 1),
+          UVOffset: vec2(0, 0.0),
+          map2Scale: 0.4,
+          map2Color: vec3(-0.93, -0.8, -0.8),
+          map2UVScale: vec2(1, 1 / (inkTex.image.width / inkTex.image.height)),
+          map2UVOffset: vec2(0, 0.0),
+          alphaMinCutoff: 0.1,
+          greyScale: true,
+          greyOffset: 0.0,
+          greyRange: vec2(0.3, 0.8),
+          greyMinCutoff: 0.0,
+          greyMaxCutoff: 2,
+          map2MaxCutoff: -1,
+          RGBOffset: vec3(-0.0, -0.0, -0.0),
+          redRange: vec2(0.0, 1.0),
+          greenRange: vec2(0, 0.6),
+          blueRange: vec2(0, 0.6),
+          alpha: 1,
+          opacity: 1,
+          useColorSelect: false,
+          negative: 0
+        })]}
+          transparent={true}
+          wireframe={false}
+        />
+      </mesh>
+      <mesh position={[position.x - 0.01, position.y + 0.2, position.z + 0.1]} scale={[.0017, .0017, 1]} rotation={new THREE.Euler(0, 0, 0)} renderOrder={7} onBeforeRender={htmlBeforeRender}  >
+        <planeGeometry args={[405 * dpr, 720 * dpr]} />
+        <shaderMaterial args={[HtmlShader({
+          map:htmlFrameBuffer, 
           map2:inkTex, 
           useMap2:true, 
-          UVScale:vec2(1, 1), 
+          UVScale:vec2(100, 100), 
           UVOffset:vec2(0, 0.0), 
-          map2Scale:1, 
-          map2Color:vec3(-0.93,-0.8,-0.8), 
-          map2UVScale:vec2(0.7, 0.7 / (inkTex.image.width / inkTex.image.height)), 
-          map2UVOffset:vec2(0, 0.0),
-          alphaMinCutoff:0.1, 
+          map2Scale:0.4, 
+          map2UVScale:vec2(1,1 / (inkTex.image.width / inkTex.image.height)), 
+          map2UVOffset:vec2(0,-0.2),
+          useMap3:true,
+          map3:natureSceneTex,
+          map3UVScale: vec2(1,1),
           greyScale:true, 
-          greyOffset:0.0, 
+          greyOffset:0.3, 
           greyRange:vec2(0.0, 1.0),
           greyMinCutoff:0.0, 
           greyMaxCutoff:2, 
           map2MaxCutoff:-1, 
           RGBOffset:vec3(-0.0, -0.0, -0.0), 
-          redRange:vec2(0.0,1.0), 
-          greenRange:vec2(0,0.6), 
-          blueRange:vec2(0,0.6), 
-          alpha:1, 
-          useColorSelect:false, 
+          redRange:vec2(0.0,1), 
+          greenRange:vec2(0,1), 
+          blueRange:vec2(0.0,1), 
+          alpha:1,
+          opacity: 1,  
           negative:0})]} 
           transparent={true} 
-          opacity={1.0}
-          wireframe={false}  
-        />
-    </mesh>
-    <mesh position={[position.x - 0.015, position.y + 0.05, position.z + 0.0001]} scale={[scaleFactor, scaleFactor, 1]} rotation={new THREE.Euler(0,0, 0)} renderOrder={7} >
-      <planeGeometry args={[405 * dpr, 720 * dpr]} />
-      <shaderMaterial args={[Shader({
-        map:natureSceneTex, 
-        map2:inkTex, 
-        useMap2:true, 
-        UVScale:vec2(1, 1), 
-        UVOffset:vec2(0, 0.0), 
-        map2Scale:1, 
-        map2Color:vec3(-0.93,-0.8,-0.8), 
-        map2UVScale:vec2(0.7, 0.7 / (inkTex.image.width / inkTex.image.height)), 
-        map2UVOffset:vec2(0, 0.0), 
-        greyScale:true, 
-        greyOffset:0.5, 
-        greyRange:vec2(0.0, 1.0),
-        greyMinCutoff:0.0, 
-        greyMaxCutoff:2, 
-        map2MaxCutoff:-1, 
-        RGBOffset:vec3(-0.0, -0.0, -0.0), 
-        redRange:vec2(0.0,1.0), 
-        greenRange:vec2(0,0.6), 
-        blueRange:vec2(0,0.6), 
-        alpha:0.7, 
-        useColorSelect:false, 
-        negative:0})]} 
-        transparent={true} 
-        opacity={1.0}
-        wireframe={false}  
-      />
-      <Html position={[0,250,position.z + 0.41]} scale={[275,275,.1]} occlude wrapperClass='block absolute top-4 inset-x-0' transform distanceFactor={10} >
-        <menu>
-          <li><button><h1 className='text-sm font-[lemon-tuesday] grayscale-0 font-bold text-japan-red hover:text-red-900'>About Me</h1></button></li>
-          <li><button><h1 className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900' >About This Site</h1></button></li>
-          <li><button><h1 className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900'>My Resume</h1></button></li>
-          <li><button><h1 className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900'>Contact</h1></button></li>
-        </menu>
-      </Html>
-       <Html position={[position.x - 275,position.y - 600,position.z + 0.40000001]} scale={[150,150,1]} transform occlude>
-        <Jitsuin />
-      </Html>
-    </mesh>
+          wireframe={false}
+          side={THREE.DoubleSide}
+          
+        /> 
+        {/* <meshBasicMaterial /> */}
+        {/* <shaderMaterial args={[Shader({
+          map: natureSceneTex,
+          map2: inkTex,
+          useMap2: true,
+          UVScale: vec2(1, 1),
+          UVOffset: vec2(0, 0.0),
+          map2Scale: 1,
+          map2Color: vec3(-0.93, -0.8, -0.8),
+          map2UVScale: vec2(0.7, 0.7 / (inkTex.image.width / inkTex.image.height)),
+          map2UVOffset: vec2(0, 0.0),
+          greyScale: true,
+          greyOffset: 0.5,
+          greyRange: vec2(0.0, 1.0),
+          greyMinCutoff: 0.0,
+          greyMaxCutoff: 2,
+          map2MaxCutoff: -1,
+          RGBOffset: vec3(-0.0, -0.0, -0.0),
+          redRange: vec2(0.0, 1.0),
+          greenRange: vec2(0, 0.6),
+          blueRange: vec2(0, 0.6),
+          alpha: 0.7,
+          opacity: 1,
+          useColorSelect: false,
+          negative: 0
+        })]}
+          transparent={true}
+          wireframe={false}
+        /> */}
+        <Html className='transition-opacity [transition-duration:3s] [transition-delay:2s] opacity-0' position={[-15, 200, .1]} scale={[275, 275, 1]} onOcclude={htmlOnOcclude} occlude transform distanceFactor={10} ref={initHtml}
+        //    
+        // material=<meshBasicMaterial transparent opacity={1.0} />
+        >
+          
+            <menu style={{ zIndex: 100 }}>
+              <li><button><span className='text-sm font-[lemon-tuesday] grayscale-0 font-bold text-japan-red hover:text-red-900'>About Me</span></button></li>
+              <li><button><span className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900' >About This Site</span></button></li>
+              <li><button><span className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900'>My Resume</span></button></li>
+              <li><button><span className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900'>Contact</span></button></li>
+            </menu>
+          
+        </Html>
+        <Html position={[position.x - 275, position.y - 575, .1]} scale={[150, 150, 1]} transform occlude='blending' side={THREE.DoubleSide} renderOrder={10}>
+          <Jitsuin />
+        </Html>
+      </mesh>
     </group>
   );
 }

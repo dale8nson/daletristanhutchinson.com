@@ -22,14 +22,14 @@ const Enso = ({ position = vec3(0, 0, 0), scale = vec3(1, 1, 1), rotation = new 
 
   const filmGrainTex = useVideoTexture(filmGrain);
   filmGrainTex.wrapS = filmGrainTex.wrapT = THREE.RepeatWrapping;
-  gl.initTexture(filmGrainTex);
+  // gl.initTexture(filmGrainTex);
 
   const mask = useLoader(THREE.TextureLoader, enso);
   mask.wrapS = mask.wrapT = THREE.RepeatWrapping;
   mask.repeat = vec2(1,1);
-  gl.initTexture(mask);
+  // gl.initTexture(mask);
   
-  gl.compile(scene, camera);
+  // gl.compile(scene, camera);
 
   const meshRef = useRef(null);
 
@@ -99,12 +99,11 @@ const Enso = ({ position = vec3(0, 0, 0), scale = vec3(1, 1, 1), rotation = new 
 
   });
 
-  gl.compile(scene, camera);
+  // gl.compile(scene, camera);
   return (
     <mesh position={[position.x, position.y, position.z]} scale={[scale.x, scale.y, scale.z]} rotation={new THREE.Euler(rotation.x, rotation.y, rotation.z)} ref={initMesh} >
-      {/* <circleGeometry /> */}
       <planeGeometry args={[mask.image.width * dpr, mask.image.height * dpr]} />
-      <shaderMaterial args={[SpinnerShader({ mask: mask, UVScale:vec2(1.8, 1.8 / (scale.x / scale.y) ), UVOffset:vec2(-0.15, 0.15), filmGrainMap:filmGrainTex, filmGrainUVScale:vec2(0.5, 0.5 / (scale.x / scale.y)), filmGrainUVOffset:vec2(0.2,0.1), color: vec4(0.2,0.2, 0.2, 1) })]} wireframe={false} />
+      <shaderMaterial args={[SpinnerShader({ mask: mask, UVScale:vec2(1.8, 1.8 / (scale.x / scale.y) ), UVOffset:vec2(-0.15, 0.1), filmGrainMap:filmGrainTex, filmGrainUVScale:vec2(0.5, 0.5 / (scale.x / scale.y)), filmGrainUVOffset:vec2(0.2,0.1), color: vec4(0.2,0.2, 0.2, 1) })]} wireframe={false} />
     </mesh>
   );
 }
