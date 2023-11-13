@@ -76,11 +76,11 @@ const GlUi = () => {
 
   
   
-  const htmlFrameBuffer = new THREE.FramebufferTexture(405 * dpr, 720 * dpr);
+  const htmlFrameBuffer = new THREE.FramebufferTexture(size.x * dpr, size.y * dpr);
   htmlFrameBuffer.wrapS = htmlFrameBuffer.wrapT = THREE.RepeatWrapping;
   htmlFrameBuffer.format = THREE.RGBAFormat;
   // const htmlFrameBufferOffset = vec2(size.width / 2 - htmlFrameBuffer.image.width / 2, size.height / 2 - htmlFrameBuffer.image.height / 2);
-  const htmlFrameBufferOffset = vec2(size.width / 2 - htmlFrameBuffer.image.width / 2, size.height / 2 - htmlFrameBuffer.image.height / 2);
+  const htmlFrameBufferOffset = vec2(0, 0);
   console.log(`htmlFrameBuffer:`, htmlFrameBuffer);
   const htmlRenderTarget = new THREE.WebGLRenderTarget();
   const htmlScene = new THREE.Scene();
@@ -246,22 +246,22 @@ const GlUi = () => {
           wireframe={false}
         />
       </mesh>
-      <mesh position={[position.x - 0.01, position.y + 0.2, position.z + 0.1]} scale={[.0017, .0017, 1]} rotation={new THREE.Euler(0, 0, 0)} renderOrder={7} onBeforeRender={htmlBeforeRender}  >
+      <mesh position={[position.x + 0.01, position.y + 0.2, position.z + 0.001]} scale={[.0018, .0018, 1]} rotation={new THREE.Euler(0, 0, 0)} renderOrder={7}  >
         <planeGeometry args={[405 * dpr, 720 * dpr]} />
         <shaderMaterial args={[HtmlShader({
           map:htmlFrameBuffer, 
           map2:inkTex, 
           useMap2:true, 
-          UVScale:vec2(100, 100), 
+          UVScale:vec2(1, 1), 
           UVOffset:vec2(0, 0.0), 
-          map2Scale:0.4, 
+          map2Scale:0.3, 
           map2UVScale:vec2(1,1 / (inkTex.image.width / inkTex.image.height)), 
-          map2UVOffset:vec2(0,-0.2),
+          map2UVOffset:vec2(0,0),
           useMap3:true,
           map3:natureSceneTex,
           map3UVScale: vec2(1,1),
           greyScale:true, 
-          greyOffset:0.3, 
+          greyOffset:0.4, 
           greyRange:vec2(0.0, 1.0),
           greyMinCutoff:0.0, 
           greyMaxCutoff:2, 
