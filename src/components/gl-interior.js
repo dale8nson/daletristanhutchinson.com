@@ -1,5 +1,7 @@
-import { useMemo, useRef, forwardRef, useCallback } from 'react';
+import { useMemo, useRef, forwardRef, useCallback, useEffect, EventDispatcher } from 'react';
+import * as React from 'react';
 import { useThree, useLoader, useFrame } from '@react-three/fiber';
+import { useVideoTexture } from '@react-three/drei';
 import whiteWall from '../assets/white-wall.png';
 import tatami from '../assets/TexturesCom_Wicker0046_12_seamless_S.jpg';
 import tatamiTrim from '../assets/TexturesCom_Wicker0046_15_S.jpg';
@@ -7,6 +9,9 @@ import roughWood from '../assets/TexturesCom_WoodRough0003_M.jpg';
 import * as THREE from 'three';
 import { MathUtils } from 'three';
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
+import { StdShader } from './shaders/shader';
+import Dispatcher from '../dispatcher';
+// import { BroadcastChannel } from 'node:worker_threads';
 import glass from '../assets/TCom_WindowsOther0024_S.jpeg';
 import paper from '../assets/TCom_PaperDecorative0032_1_seamless_M.jpeg';
 import plaster from '../assets/TCom_PlasterBare0143_1_seamless_M.jpeg'
@@ -15,6 +20,8 @@ import hikite from '../assets/hikite.png';
 import gotama from '../assets/Gotama-edited.png';
 import woodPanel1 from '../assets/TCom_WoodFine0082_3_seamless_M.jpeg';
 import planks from '../assets/TCom_Wood_PlanksTemple2_2x2_512_albedo.png';
+import autumnLeaves from '../assets/pexels_videos_1777892 (720p).mp4'
+
 
 const vec2 = (n1 = null, n2 = null) => new THREE.Vector2(n1, n2);
 const vec3 = (n1 = null, n2 = null, n3 = null) => new THREE.Vector3(n1, n2, n3);
@@ -505,7 +512,7 @@ const Strut2 = ({ scale = vec3(1, 1, 1), position = vec3(0, 0, 0), UVScale = vec
   );
 }
 
-const Shoji = ({ scale = vec3(1, 1, 1), position, greyOffset = 0.0, rotation = new THREE.Euler(0, 0, 0) }) => {
+const Shoji = forwardRef(({ scale = vec3(1, 1, 1), position, greyOffset = 0.0, rotation = new THREE.Euler(0, 0, 0) }, ref) => {
 
   const Lattice = ({ position }) => {
     const hLatticeArray = Array(13).fill(null).map((_, index) => {
@@ -516,7 +523,7 @@ const Shoji = ({ scale = vec3(1, 1, 1), position, greyOffset = 0.0, rotation = n
 
     const vLatticeArray = Array(4).fill(null).map((_, index) => {
       return (
-        <Strut key={index} position={vec3(position.x + 1.8 - (index + 1) * 0.6 * scale.x, position.y - 3.125 * scale.y, position.z * scale.z)} scale={vec3(scale.y * 0.003385, scale.x * 0.00015, 1)} rotation={new THREE.Euler(0, 0, -(Math.PI / 2))} />
+        <Strut key={index} position={vec3(position.x + 1.5 * scale.x - (index + 1) * 0.6 * scale.x, position.y - 3.125 * scale.y, position.z * scale.z)} scale={vec3(scale.y * 0.003385, scale.x * 0.00015, 1)} rotation={new THREE.Euler(0, 0, -(Math.PI / 2))} />
       );
     })
 
@@ -533,12 +540,13 @@ const Shoji = ({ scale = vec3(1, 1, 1), position, greyOffset = 0.0, rotation = n
   }
 
   return (
-    <>
+    <group ref={ref} position={[position.x, position.y, position.z]} scale={[scale.x, scale.y, scale.z]}
+    >
       <Lattice position={vec3(position.x - 0.0475, position.y, position.z)} />
-      <WallPaper map={plaster} scale={vec3(0.00097 * scale.x, 0.00178 * scale.y, 1 * scale.z)} position={vec3(position.x - 0.1 * scale.x, position.y - 3.175 * scale.y, position.z - 0.15)} />
-    </>
+      <WallPaper map={plaster} scale={vec3(0.00097 * scale.x, 0.00178 * scale.y, 1 * scale.z)} position={vec3(position.x - 0.1 * scale.x, position.y - 3.175 * scale.y, position.z - 0.001)} />
+    </group>
   );
-}
+});
 
 // const Shoji = ({scale=Vec3(0,0,0), position, greyOffset=0.0, rotation=new THREE.Euler(0,0,0)}) => {
 
@@ -682,48 +690,42 @@ const Backdrop = ({ map = null, position = vec3(0, 0, 0), scale = vec3(1, 1, 1),
   )
 }
 
-const GLInterior = (props) => {
+const GLInterior = ({ registerEventListener }) => {
+
+  const akiTex = useVideoTexture(autumnLeaves);
+  akiTex.format = THREE.RGBAFormat;
+  akiTex.wrapS = akiTex.wrapT = THREE.RepeatWrapping;
+  console.log(`akiTex:`, akiTex);
+
+  // const bc = new BroadcastChannel('loudspeaker');
+  // bc.postMessage('this is a test from gl-interior');
+
+  // const messenger = new SharedWorker(new URL('./msg-channel.js', import.meta.url));
+
+  // messenger.port.onmessage = (e) => {
+  //   console.log(`message received: ${e.data}`);
+  // }
+
   const { camera } = useThree();
   // console.log(`camera:`, camera);
+  const leftShojiRef = useRef(null);
+
 
   let camAnimMixer, camPanXTrack, camPanYTrack, camPanZTrack, camRotXTrack, camAnimClip, camAnimAction;
 
   const animateCamera = useCallback(() => {
     // camera.position.z = 5;
-    camera.position.z = 2;
-    camera.position.y = -1.05;
     camera.position.x = 2;
-    camera.rotation.y = 0;
+    camera.position.y = -1.05;
+    camera.position.z = 2;
     camera.rotation.x = 0;
+    camera.rotation.y = 0;
+    camera.rotation.z = 0;
 
-    // camera.position.z = 8;
-    // camera.position.y = 3.1;
-    // camera.position.x = -1.2;
-    // camera.rotation.y = 0;
-    // camera.rotation.x = (Math.PI / 180 * 10);
 
-    // camera.position.z = -2.5;
-    // camera.position.y = -17.925;
-    // camera.position.x = -0;
-    // camera.rotation.x = (Math.PI / 180 * 90);
-    // camera.rotation.z = -(Math.PI / 180 * 90);
-
-    // camera.position.z = -10.5;
-    // camera.position.y = 7.925;
-    // camera.position.x = 2.5;
-    // camera.rotation.x = 0;
-    // camera.rotation.z = (Math.PI / 180 * 90);
-    // camera.rotation.x = -Math.PI / 2;
-
-    // camera.rotation.y = -(Math.PI / 2);
-    // camera.position.z = -4;
-    // camera.position.y = -2.1;
-    // camera.position.x = -6;
-
-    // camera.position.y = 5;
+    // camera.position.z = 5;
     // camera.position.y = 0;
     // camera.position.x = 0;
-    // camera.position.z = 5;
     // camera.rotation.y = 0;
     // camera.rotation.x = (Math.PI / 180 * 10);
 
@@ -737,7 +739,7 @@ const GLInterior = (props) => {
     camAnimMixer = new THREE.AnimationMixer(camera);
     camAnimAction = camAnimMixer.clipAction(camAnimClip);
     camAnimAction.setLoop(THREE.LoopOnce);
-    camAnimAction.play();
+    // camAnimAction.play();
 
   }, []);
 
@@ -755,12 +757,54 @@ const GLInterior = (props) => {
     fusuAnimClip = new THREE.AnimationClip('', 16, [fusuXTrack]);
     fusuAction = fusuAnimMixer.clipAction(fusuAnimClip);
     fusuAction.setLoop(THREE.LoopOnce);
-    fusuAction.play();
+    // fusuAction.play();
   }, [fusuRef.current, fusuAnimMixer, fusuXTrack, fusuAnimClip, fusuAction]);
+
+  let leftShojiMixer, leftShojiXCloseTrack, leftShojiXOpenTrack, leftShojiCloseClip, leftShojiOpenClip, openLeftShoji, closeLeftShoji;
+  leftShojiXOpenTrack = new THREE.NumberKeyframeTrack('.position[x]', [0, 4, 5], [-6.4, -6.4, -10.1]);
+  leftShojiOpenClip = new THREE.AnimationClip('', 5, [leftShojiXOpenTrack]);
+
+  const dispatcher = new EventTarget();
+  const initLeftShoji = useCallback(node => {
+
+    if (!node) return;
+    leftShojiRef.current = node;
+    const nodeRef = leftShojiRef.current;
+    leftShojiMixer = new THREE.AnimationMixer(nodeRef);
+    openLeftShoji = leftShojiMixer.clipAction(leftShojiOpenClip);
+    openLeftShoji.clampWhenFinished = true;
+    openLeftShoji.setLoop(THREE.LoopOnce);
+    // openLeftShoji.play();
+    registerEventListener('open-left-shoji', () => {
+      openLeftShoji.play();
+    })
+  }, []);
+  // dispatcher.addEventListener('open-left-shoji', () => {
+  //   openLeftShoji.play(); 
+  // })
+
+
+
+  console.log(`EventDispatcher.prototype.isPrototypeOf(leftShojiRef.current):`, leftShojiRef.current)
+
+  // registerEventListener('open-left-shoji', () => {
+  //   console.log(`open-left-shoji`);
+  //   leftShojiRef.current.position.x = -16.25;
+  //   openLeftShoji.play(); 
+  // })
+
+
+  // useEffect(() => {
+  //   leftShojiRef.current.addEventListener('open-left-shoji', () => {
+  //     // leftShojiRef.current.position.x = -16.25;
+  //     openLeftShoji.play();
+  //   });
+  // }, []);
 
   useFrame((state, delta) => {
     camAnimMixer?.update(delta);
     fusuAnimMixer?.update(delta);
+    leftShojiMixer?.update(delta);
   });
 
   return (
@@ -792,21 +836,30 @@ const GLInterior = (props) => {
       <Post scale={vec3(0.00275, 0.000071, 1)} position={vec3(6.825, -1.02, 0)} rotation={new THREE.Euler(0, -(Math.PI / 2), -(Math.PI / 2))} greyOffset={-0.2} renderOrder={35} />
       <Post scale={vec3(0.00274, 0.0004, 1)} position={vec3(6.775, -1.02, 0)} rotation={new THREE.Euler(0, 0, -(Math.PI / 2))} greyOffset={0} renderOrder={35} />
       <WallPaper map={plaster} scale={vec3(0.0021, -0.00141225, 1)} position={vec3(10.2, -1.1, -0.0001)} UVOffset={vec2(0.2, 0.01)} greyScale={true} greyOffset={-0.4} />
-      <Fusuma map={plaster} position={vec3(5.75, -1.03, -0.02)} scale={vec3(-0.001, 0.00134, 1)}  ref={setupFusuma}  />
+      <Fusuma map={plaster} position={vec3(5.75, -1.03, -0.02)} scale={vec3(-0.001, 0.00134, 1)} ref={setupFusuma} />
       <Fusuma map={plaster} position={vec3(5.1, -1.03, -0.04)} scale={vec3(0.001, 0.00134, 1)} />
       <Post scale={vec3(0.0025885, 0.0004, 1)} position={vec3(6.579, -1.05, -0.14)} rotation={new THREE.Euler(0, 0, -(Math.PI / 2))} greyOffset={0} renderOrder={35} />
       <WallPaper map={plaster} scale={vec3(0.0021, 0.00141225, 1)} position={vec3(10.2, -1.1, -0.1401)} UVOffset={vec2(0.2, 0.01)} greyScale={true} greyOffset={-0.7} />
 
       <Brace scale={vec3(-0.0045, 0.00025, 1)} position={vec3(3.59223, -3.3, -0.14)} rotation={new THREE.Euler(-(Math.PI / 2), 0, 0)} greyOffset={-0.1} />
 
-      <WallPaper map={paper} position={vec3(-9.3, 3.38, -5.775)} scale={vec3(0.0039, 0.0009, 1)} UVOffset={vec2(0.2, 0.02)} renderOrder={5} />
-      <Backdrop map={ryouanji} position={vec3(-10.5, -1, -6)} scale={vec3(0.0012, 0.0012, 1)} UVScale={vec2(0.8, 0.8)} UVOffset={vec2(0.33, 0)} greyScale={true} greyRange={vec2(0.0, 0.7)} backMap={ryouanji} />
-      <Brace scale={vec3(0.0075, 0.00075, 1)} position={vec3(-9.3, 1.8, -5.63)} rotation={new THREE.Euler(0, 0, 0)} greyScale={true} greyOffset={-0.075} />
+      <WallPaper map={paper} position={vec3(-11, 3.33, -5.52)} scale={vec3(0.005, 0.0009, 1)} UVOffset={vec2(0.2, 0.02)} renderOrder={5} />
+      <Backdrop map={ryouanji} position={vec3(-11.5, -1, -6)} scale={vec3(0.0017, 0.0017, 1)} UVScale={vec2(0.8, 0.8)} UVOffset={vec2(0.33, 0)} greyScale={true} greyRange={vec2(0.0, 0.7)} backMap={ryouanji} />
+      <mesh position={[-13, -1, -5.9]} scale={[4, 7, 1]} >
+        <planeGeometry args={[1, 1 / (1280 / 720)]} />
+        <shaderMaterial args={[StdShader({ map: akiTex, UVScale: vec2(0.8, 0.8), UVOffset: vec2(0, 0), greyScale:true, useColorSelect:true, tolerance: 0.3, greyRange: vec2(0, 1), greyOffset: 0.0, redRange: vec2(0, 1), blueRange: vec2(0, 1), RGBOffset: vec3(-0.3, 0, 0), greenRange: vec2(0, 1), selectColor: vec3(1, 0.050980392156862744, 0.043137254901960784) })]} />
+      </mesh>
+
+      <Brace scale={vec3(0.01, 0.00075, 1)} position={vec3(-11, 1.775, -5.4999)} rotation={new THREE.Euler(0, 0, 0)} greyScale={true} greyOffset={-0.075} />
       <WallPaper map={plaster} position={vec3(-0.2, -0.9, -6.7)} scale={vec3(0.004125, 0.003, 1)} rotation={new THREE.Euler(0, Math.PI / 2, 0)} UVOffset={vec2(0.2, 0.01)} renderOrder={5} />
 
-      <Shoji position={vec3(-5.75, 2, -5.5)} scale={vec3(1.06, 1, 1)} />
-      {/* <Shoji position={Vec3(-9.125, 2.1, -5.8)} scale={Vec3(1.06, 1.04, 1)} /> */}
-      {/* <Shoji position={Vec3(-12.75, 2, -5.6)} scale={Vec3(1.06,1,1)} /> */}
+      <Shoji position={vec3(-2.75, 1.025, -2.80001)} scale={vec3(1.05, 1.005, 1)} />
+      <Shoji position={vec3(-4.5, 1.025, -2.80001)} scale={vec3(1.02, 1.005, 1)} />
+      <Shoji position={vec3(-6.4, 1.025, -2.80001)} scale={vec3(1.02, 1.005, 1)} ref={initLeftShoji} />
+      <WallPaper map={plaster} position={vec3(-18.28, -0.9, -6.7)} scale={vec3(0.004125, 0.003, 1)} rotation={new THREE.Euler(0, Math.PI / 2, 0)} UVOffset={vec2(0.2, 0.01)} renderOrder={5} />
+      <Post scale={vec3(0.00275, 0.000071, 1)} position={vec3(-11, -1.02, -5.5)} rotation={new THREE.Euler(0, -(Math.PI / 2), -(Math.PI / 2))} greyOffset={-0.2} renderOrder={35} />
+      <Post scale={vec3(0.00355, 0.0005, 1)} position={vec3(-14.63, -1.125, -5.49999)} rotation={new THREE.Euler(0, 0, -(Math.PI / 2))} greyOffset={0} renderOrder={35} />
+      <WallPaper map={plaster} scale={vec3(0.00115, -0.00176, 1)} position={vec3(-16.5, -1.14, -5.52)} UVOffset={vec2(0.2, 0.01)} greyScale={true} greyOffset={-0.4} />
 
       <Osaranma position={vec3(-3.65, 1.4375, -0.3)} />
 

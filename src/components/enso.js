@@ -89,7 +89,7 @@ const Enso = ({ position = vec3(0, 0, 0), scale = vec3(1, 1, 1), rotation = new 
   const animate = () => {
     const delta = clock.getDelta();
     meshRef.current && mixer?.update(delta);
-    requestAnimationFrame(animate)
+    requestAnimationFrame(animate);
   }
 
   useFrame((_, delta) => {

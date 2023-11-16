@@ -57,10 +57,10 @@ const stdFragmentShader= `
       
 uniform int colorsSelectCount, edge;
 uniform sampler2D map, map2, map3, backMap;
-uniform vec3 RGBScale, RGBOffset, map2Color;
+uniform vec3 RGBScale, RGBOffset, map2Color, selectColor;
 uniform vec2 UVScale, UVOffset, map2UVScale, map2UVOffset, map3UVScale, map3UVOffset, redRange, greenRange, blueRange, greyRange, alphaRange;
-uniform bool useMap2, useMap3, useBackMap, antialias, greyScale, useColorSelect;
-uniform float alphaMinCutoff, alphaMaxCutoff, map2Scale, map2MaxCutoff, greyOffset, greyMinCutoff, greyMaxCutoff, negative, opacity;
+uniform bool useColorSelect, useMap2, useMap3, useBackMap, greyScale;
+uniform float alphaMinCutoff, alphaMaxCutoff, map2Scale, map2MaxCutoff, greyOffset, greyMinCutoff, greyMaxCutoff, negative, opacity, tolerance;
 
 
 varying vec2 vUv;
@@ -87,25 +87,19 @@ void main() {
 
     red = green = blue = grey * scale + offset + greyOffset;
 
-    // if(useColorsSelect) {
-    //   for(int i = 0; i < colorsSelect.length(); i++) {
-    //     vec3 c = colorsSelect[i];
-    //     if(col.r == c.r && col.g == c.g && col.b == c.b) {
-    //       red = c.r;
-    //       green = c.g;
-    //       blue = c.b;
-    //       break;
-    //     }
-    //   }
-    // }
-    if (useColorSelect) {
-      if(col.r >= redRange.x && col.r <= redRange.y
-      && col.g >= greenRange.x && col.g <= greenRange.y 
-      && col.b >= blueRange.x && col.b <= blueRange.y) { 
-        red = col.r;
-        green = col.g;
-        blue = col.b;
+    if(useColorSelect) {
+      if(mapCol.r >= (selectColor.x - tolerance) && mapCol.r <= (selectColor.x + tolerance)
+        && mapCol.g >= (selectColor.y - tolerance) && mapCol.g <= (selectColor.y + tolerance)
+        && mapCol.b >= (selectColor.z - tolerance) && mapCol.b <= (selectColor.z + tolerance)) {
+          red = mapCol.r + greyOffset + RGBOffset.r;
+          green = mapCol.g + greyOffset + RGBOffset.g;
+          blue = mapCol.b + greyOffset + RGBOffset.b;
       }
+
+      // red = 0.93;
+      // green = 0.0;
+      // blue = 0.0;
+
     }
 
   } else {
@@ -290,7 +284,7 @@ void main() {
 }
 ` 
 
-const Shader = ({
+const StdShader = ({
   map,
   map2,
   useMap2,
@@ -305,8 +299,7 @@ const Shader = ({
   map3UVOffset,
   edge,
   useBackMap,
-  backMap,
-  antialias, 
+  backMap, 
   UVScale, 
   UVOffset, 
   RGBScale, 
@@ -320,13 +313,14 @@ const Shader = ({
   greyMinCutoff,
   greyMaxCutoff,
   useColorSelect,
-  colorsSelect,
-  colorsSelectCount,
+  selectColor,
+  tolerance,
   negative,
   redRange,
   greenRange,
   blueRange,
-  greyRange
+  greyRange,
+  
  }) => {
   const mat = {
     uniforms: {
@@ -336,7 +330,7 @@ const Shader = ({
       map2Scale: {value: map2Scale || 1.0},
       map2Color: { value: map2Color || vec3(1,1,1)},
       map2UVScale: {value: map2UVScale || vec2(1,1)},
-      map2UVOffset: {value: map2UVOffset || vec2(1,1)},
+      map2UVOffset: {value: map2UVOffset || vec2(0,0)},
       map2MaxCutoff: { value: map2MaxCutoff || 0.6},
       useMap3: { value: useMap3 || false},
       map3: { value: map3 || null },
@@ -344,8 +338,7 @@ const Shader = ({
       map3UVOffset: { value: map3UVOffset || vec2(0,0) },
       edge: { value: edge || 0 },
       useBackMap: {value: useBackMap || false},
-      backMap: {value: backMap || null},
-      antialias: {value: antialias || false},  
+      backMap: {value: backMap || null}, 
       UVScale: {value: UVScale || vec2(1,1)}, 
       UVOffset: {value: UVOffset || vec2(0,0)},
       RGBScale: {value: RGBScale || vec3(1,1,1)},
@@ -357,10 +350,10 @@ const Shader = ({
       greyOffset: {value: greyOffset || 0.0},
       greyScale: {value: greyScale || false},
       useColorSelect: { value: useColorSelect || false },
-      // colorsSelect: { value: colorsSelect || null },
-      // colorsSelectCount: { value: colorsSelectCount || 0 },
-      greyMinCutoff: { value: greyMinCutoff || 0},
-      greyMaxCutoff: { value: greyMaxCutoff || 1},
+      selectColor: {value: selectColor || vec3(1,1,1)},
+      tolerance: { value: tolerance || 0.1 },
+      greyMinCutoff: { value: greyMinCutoff || -2},
+      greyMaxCutoff: { value: greyMaxCutoff || 2},
       negative: { value: negative || 0.0 },
       redRange: { value: redRange || vec2(0,1) },
       greenRange: { value: greenRange || vec2(0,1) },
@@ -369,7 +362,7 @@ const Shader = ({
     },
     vertexShader: stdVertexShader,
     fragmentShader: stdFragmentShader,
-      transparent: true
+    transparent: true
   };
   Object.defineProperties(mat, {
     map: {
@@ -427,6 +420,8 @@ const Shader = ({
     }
 
   });
+
+  console.log(`useColorSelect is set to ${useColorSelect}`);
   return mat;
 
 }
@@ -461,11 +456,11 @@ const SpinnerShader = ({mask=null, UVScale=vec2(1,1), UVOffset=vec2(0,0), filmGr
 
         
         
-        float uvTheta = (atan(uvY, uvX));
+        // float uvTheta = (atan(uvY, uvX));
 
-        if (uvTheta < 0.0) uvTheta = 2.0 * PI + uvTheta;
+        // if (uvTheta < 0.0) uvTheta = 2.0 * PI + uvTheta;
 
-        uvTheta = uvTheta + floor(theta / (2.0 * PI)) * 2.0 * PI;
+        // uvTheta = uvTheta + floor(theta / (2.0 * PI)) * 2.0 * PI;
 
         // float startAngle = theta - floor(theta / (2.0 * PI)) * 2.0 * PI;
         // float endAngle = (theta + thetaLength) - floor((theta + thetaLength) / (2.0 * PI)) * 2.0 * PI;
@@ -664,7 +659,7 @@ const HtmlShader = ({
 }
 
 export {
-  Shader,
+  StdShader,
   SpinnerShader,
   HtmlShader
 }

@@ -19,7 +19,8 @@ module.exports = {
   "gatsby-transformer-sharp", 
   "gatsby-plugin-sass", 
   // "gatsby-plugin-mdx", 
-  "gatsby-plugin-typescript",
+  // "gatsby-plugin-typescript",
+  "gatsby-worker",
 
   {
     resolve: 'gatsby-source-filesystem',
