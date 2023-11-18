@@ -12,7 +12,7 @@ import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
 import { StdShader } from './shaders/shader';
 import Dispatcher from '../dispatcher';
 // import { BroadcastChannel } from 'node:worker_threads';
-import glass from '../assets/TCom_WindowsOther0024_S.jpeg';
+import glass from '../assets/Texturelabs_Glass_154L.jpg';
 import paper from '../assets/TCom_PaperDecorative0032_1_seamless_M.jpeg';
 import plaster from '../assets/TCom_PlasterBare0143_1_seamless_M.jpeg'
 import ryouanji from '../assets/victor-lu-1EJX-rotoeg-unsplash.jpg';
@@ -643,7 +643,7 @@ const WallPaper = ({ map = null, position = vec3(0, 0, 0), scale = vec3(1, 1, 1)
       <shaderMaterial args={[Shader({ map: tex, UVScale: vec2(UVScale.x, UVScale.y / (scale.x / scale.y)), UVOffset, RGBOffset: vec3(0.3, 0.3, 0.3), greyScale: greyScale, alphaRange: vec2(0.1, 0.35), alphaMinCutoff: 0.0, alphaMaxCutoff: 1, greyOffset: greyOffset, useMap2, map2: map2Tex, map2UVScale, map2Scale })]} wireframe={false} side={THREE.DoubleSide} />
     </mesh>
   );
-}
+};
 
 // const WallPaper = ({map=null, position, scale, renderOrder, UVScale=Vec2(1,1), useMap2=false, map2=null, map2UVScale=Vec2(1,1), map2Scale=0.0}) => {
 //   const { gl } = useThree();
@@ -688,14 +688,16 @@ const Backdrop = ({ map = null, position = vec3(0, 0, 0), scale = vec3(1, 1, 1),
       <shaderMaterial args={[Shader({ map: tex, UVScale: vec2(UVScale.x, UVScale.y / (scale.x / scale.y)), UVOffset, RGBOffset, greyScale, greyRange, greyOffset, greyMinCutoff, greyMaxCutoff, alphaMinCutoff, alphaMaxCutoff, alphaRange, useBackMap, backMap: backMapTex, antialias, redRange, greenRange, blueRange })]} wireframe={false} />
     </mesh>
   )
-}
+};
 
-const GLInterior = ({ registerEventListener }) => {
+const GLInterior = ({ registerEventListener, dispatch }) => {
 
   const akiTex = useVideoTexture(autumnLeaves);
   akiTex.format = THREE.RGBAFormat;
   akiTex.wrapS = akiTex.wrapT = THREE.RepeatWrapping;
   console.log(`akiTex:`, akiTex);
+  const glassTex = useLoader(THREE.TextureLoader, glass);
+  glassTex.wrapS = glassTex.wrapT = THREE.RepeatWrapping;
 
   // const bc = new BroadcastChannel('loudspeaker');
   // bc.postMessage('this is a test from gl-interior');
@@ -710,24 +712,33 @@ const GLInterior = ({ registerEventListener }) => {
   // console.log(`camera:`, camera);
   const leftShojiRef = useRef(null);
 
-
   let camAnimMixer, camPanXTrack, camPanYTrack, camPanZTrack, camRotXTrack, camAnimClip, camAnimAction;
 
-  const animateCamera = useCallback(() => {
+    // camera.position.x = -8;
+    // camera.position.y = 3.1;
+    // camera.position.z = 1.2;
+    // camera.rotation.y = 0; 
+  
     // camera.position.z = 5;
+
+    camera.rotation.x = 0;
+    camera.rotation.y = 0;
+    camera.rotation.z = 0;
+
+    // camera.position.x = -8;
+    // camera.position.y = 3.1;
+    // camera.position.z = 1.2;
+    // camera.rotation.y = 0;
+    // camera.rotation.x = (Math.PI / 180 * 10);
+  
+    useEffect(() => {
+
     camera.position.x = 2;
     camera.position.y = -1.05;
     camera.position.z = 2;
     camera.rotation.x = 0;
     camera.rotation.y = 0;
     camera.rotation.z = 0;
-
-
-    // camera.position.z = 5;
-    // camera.position.y = 0;
-    // camera.position.x = 0;
-    // camera.rotation.y = 0;
-    // camera.rotation.x = (Math.PI / 180 * 10);
 
     camPanXTrack = new THREE.NumberKeyframeTrack('.position[x]', [0, 6.5, 9, 12, 14], [-8, 3, 3, 0, 2], THREE.InterpolateLinear);
     camPanYTrack = new THREE.NumberKeyframeTrack('.position[y]', [0, 6.5, 9, 12, 14], [3.1, 3.1, -0.4, -1.05, -1.05], THREE.InterpolateLinear);
@@ -739,11 +750,10 @@ const GLInterior = ({ registerEventListener }) => {
     camAnimMixer = new THREE.AnimationMixer(camera);
     camAnimAction = camAnimMixer.clipAction(camAnimClip);
     camAnimAction.setLoop(THREE.LoopOnce);
-    // camAnimAction.play();
+    camAnimAction.play();
 
   }, []);
 
-  animateCamera();
 
   const fusuRef = useRef(null);
   let fusuAnimMixer, fusuXTrack, fusuAnimClip, fusuAction;
@@ -757,14 +767,13 @@ const GLInterior = ({ registerEventListener }) => {
     fusuAnimClip = new THREE.AnimationClip('', 16, [fusuXTrack]);
     fusuAction = fusuAnimMixer.clipAction(fusuAnimClip);
     fusuAction.setLoop(THREE.LoopOnce);
-    // fusuAction.play();
-  }, [fusuRef.current, fusuAnimMixer, fusuXTrack, fusuAnimClip, fusuAction]);
+    fusuAction.play();
+  }, []);
 
   let leftShojiMixer, leftShojiXCloseTrack, leftShojiXOpenTrack, leftShojiCloseClip, leftShojiOpenClip, openLeftShoji, closeLeftShoji;
   leftShojiXOpenTrack = new THREE.NumberKeyframeTrack('.position[x]', [0, 4, 5], [-6.4, -6.4, -10.1]);
   leftShojiOpenClip = new THREE.AnimationClip('', 5, [leftShojiXOpenTrack]);
 
-  const dispatcher = new EventTarget();
   const initLeftShoji = useCallback(node => {
 
     if (!node) return;
@@ -776,14 +785,15 @@ const GLInterior = ({ registerEventListener }) => {
     openLeftShoji.setLoop(THREE.LoopOnce);
     // openLeftShoji.play();
     registerEventListener('open-left-shoji', () => {
+      leftShojiRef.current.position.x = -10.1;
       openLeftShoji.play();
+      akiBoke.play();
+      dispatch('show-about-me');
     })
   }, []);
   // dispatcher.addEventListener('open-left-shoji', () => {
   //   openLeftShoji.play(); 
   // })
-
-
 
   console.log(`EventDispatcher.prototype.isPrototypeOf(leftShojiRef.current):`, leftShojiRef.current)
 
@@ -801,10 +811,35 @@ const GLInterior = ({ registerEventListener }) => {
   //   });
   // }, []);
 
+  const akiRef = useRef(null);
+  let akiMixer, akiBokeTrack, akiClip, akiBoke;
+  akiBokeTrack = new THREE.NumberKeyframeTrack('.bokehScale', [0,5,6], [-0.1,-0.1,1.0]);
+  akiClip = new THREE.AnimationClip('', 6,[akiBokeTrack]);
+
+
+  const initAki = node => {
+    if(!node) return;
+    akiRef.current = node;
+    const nodeRef = akiRef.current;
+    if(!Object.hasOwn(nodeRef, 'bokehScale')) {
+      Object.defineProperties(nodeRef, {
+        bokehScale: {
+          get() { return this.material.uniforms.bokehScale.value; },
+          set(val) { this.material.uniforms.bokehScale.value = val; }
+        }
+      })
+    }
+    akiMixer = new THREE.AnimationMixer(akiRef.current);
+    akiBoke = akiMixer.clipAction(akiClip);
+    akiBoke.setLoop(THREE.LoopOnce);
+    akiBoke.clampWhenFinished = true;
+  }
+
   useFrame((state, delta) => {
     camAnimMixer?.update(delta);
     fusuAnimMixer?.update(delta);
     leftShojiMixer?.update(delta);
+    akiMixer?.update(delta);
   });
 
   return (
@@ -845,9 +880,9 @@ const GLInterior = ({ registerEventListener }) => {
 
       <WallPaper map={paper} position={vec3(-11, 3.33, -5.52)} scale={vec3(0.005, 0.0009, 1)} UVOffset={vec2(0.2, 0.02)} renderOrder={5} />
       <Backdrop map={ryouanji} position={vec3(-11.5, -1, -6)} scale={vec3(0.0017, 0.0017, 1)} UVScale={vec2(0.8, 0.8)} UVOffset={vec2(0.33, 0)} greyScale={true} greyRange={vec2(0.0, 0.7)} backMap={ryouanji} />
-      <mesh position={[-13, -1, -5.9]} scale={[4, 7, 1]} >
+      <mesh position={[-13, -1, -5.9]} scale={[4, 8, 1]} ref={initAki} >
         <planeGeometry args={[1, 1 / (1280 / 720)]} />
-        <shaderMaterial args={[StdShader({ map: akiTex, UVScale: vec2(0.8, 0.8), UVOffset: vec2(0, 0), greyScale:true, useColorSelect:true, tolerance: 0.3, greyRange: vec2(0, 1), greyOffset: 0.0, redRange: vec2(0, 1), blueRange: vec2(0, 1), RGBOffset: vec3(-0.3, 0, 0), greenRange: vec2(0, 1), selectColor: vec3(1, 0.050980392156862744, 0.043137254901960784) })]} />
+        <shaderMaterial args={[StdShader({ map: akiTex, UVScale: vec2(0.8, 0.8), UVOffset: vec2(0, 0), greyScale:true, BnW:true, BnWThreshold: 0.5, bokeh:true, bokehPasses: 16, bokehScale:1, psr:vec2(0.01, 0.01), useColorSelect:true, tolerance: 0.7, greyRange: vec2(0, 0.7), greyOffset: 0.2, redRange: vec2(0, 1), blueRange: vec2(0, 1), RGBOffset: vec3(-0.1, -0.1, -0.1), greenRange: vec2(0, 1), selectColor: vec3(1, 0.050980392156862744, 0.043137254901960784), useMap2:false, map2:glassTex, map2Scale:0.05, map2UVScale: vec2(0.1,0.1) })]} />
       </mesh>
 
       <Brace scale={vec3(0.01, 0.00075, 1)} position={vec3(-11, 1.775, -5.4999)} rotation={new THREE.Euler(0, 0, 0)} greyScale={true} greyOffset={-0.075} />

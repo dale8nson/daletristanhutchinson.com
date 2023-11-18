@@ -6,8 +6,6 @@ import { StdShader, HtmlShader } from "./shaders/shader";
 import { Html, useVideoTexture, Text, OrbitControls, CameraControls } from "@react-three/drei";
 import { Jitsuin } from '../components';
 import Dispatcher from '../dispatcher';
-// const mitt = require('mitt');
-// import { getMessenger } from 'gatsby-worker';
 import parchment from '../assets/Texturelabs_Glass_151L.jpg';
 import sumiE from '../assets/david-emrich-VCM99u6HltA-unsplash copy.jpg';
 import ink from '../assets/Texturelabs_InkPaint_369L.jpg';
@@ -19,32 +17,21 @@ import washi4 from '../assets/washi-edge-4.webp';
 import washi5 from '../assets/washi-edge-5.webp';
 import washi6 from '../assets/washi-edge-6.webp';
 import kakejiku from '../assets/kakejiku.png';
+import glass from '../assets/TCom_WindowsOther0024_S.jpeg';
+import autumnLeaves from '../assets/pexels_videos_1777892 (720p).mp4'
 
-// import { Worker } from 'worker_threads';
 
 const vec2 = (n1, n2) => new THREE.Vector2(n1, n2);
 const vec3 = (n1, n2, n3) => new THREE.Vector3(n1, n2, n3);
 const vec4 = (n1, n2, n3, n4) => new THREE.Vector4(n1, n2, n3, n4);
 
-const GlUi = ({dispatch}) => {
+const GlUi = ({dispatch, registerEventListener}) => {
   console.log(`dispatch:`, dispatch);
   const { gl, camera, scene } = useThree();
   console.log(`gl:`, gl);
   const dpr = gl.getPixelRatio();
   const size = vec2(0,0);
   gl.getSize(size);
-
-
-  
-  const openLeftShoji = new Event('open-left-shoji');
-
-  // const workerThreads = import('worker_threads');
-  // const messenger = new SharedWorker(new URL('./msg-channel.js', import.meta.url));
-  // messenger.port.start();
-
-  // const messenger = getMessenger(new URL('./switchboard.js'));
-
-  // messenger.sendMessage('This is a test');
 
   const natureSceneTex = useVideoTexture(natureScene);
   natureSceneTex.wrapS = natureSceneTex.wrapT = THREE.RepeatWrapping;
@@ -63,8 +50,11 @@ const GlUi = ({dispatch}) => {
   const washiTex4 = useLoader(THREE.TextureLoader, washi5);
   washiTex4.wrapS = washiTex4.wrapT = THREE.MirroredRepeatWrapping;
   const kjTex = useLoader(THREE.TextureLoader, kakejiku);
-  
-
+  const glassTex = useLoader(THREE.TextureLoader, glass);
+  glassTex.wrapS = glassTex.wrapT = THREE.RepeatWrapping;
+  const akiTex = useVideoTexture(autumnLeaves);
+  akiTex.format = THREE.RGBAFormat;
+  akiTex.wrapS = akiTex.wrapT = THREE.RepeatWrapping;
 
   const mmRef = useRef(null);
   const pictureRef = useRef(null);
@@ -76,8 +66,6 @@ const GlUi = ({dispatch}) => {
 
   mmAlphaTrack = new THREE.NumberKeyframeTrack('.opacity', [0, 14, 15], [0, 0, 1]);
   mmClip = new THREE.AnimationClip('', 15, [mmAlphaTrack]);
-
-
 
   const HtmlMainMenu = useCallback(() => {
     return (
@@ -94,7 +82,6 @@ const GlUi = ({dispatch}) => {
     )
   }, []);
 
-  
   const htmlFrameBuffer = new THREE.FramebufferTexture(size.x * dpr, size.y * dpr);
   htmlFrameBuffer.wrapS = htmlFrameBuffer.wrapT = THREE.RepeatWrapping;
   htmlFrameBuffer.format = THREE.RGBAFormat;
@@ -108,20 +95,12 @@ const GlUi = ({dispatch}) => {
   const ambientLight = new THREE.AmbientLight(0xee0000, 1.0);
   
   const renderHtml = (renderer, html) => {
-    // htmlScene.add(ambientLight);
-
-    // htmlScene.add(<pointLight position={new THREE.Vector3(-40,0,10)} args={[0xffffff, 1.2]} castShadow={false} />);
-    // htmlScene.add(html);
-    // gl.setRenderTarget(htmlRenderTarget);
-    // gl.render(scene, camera);
     renderer.copyFrameBufferToTexture(htmlFrameBufferOffset, htmlFrameBuffer);
-    // gl.setRenderTarget(null);
   }
-  // , [htmlRenderer, htmlCamera, htmlFrameBuffer, htmlFrameBufferOffset, htmlRenderTarget]);
   
-
-  const initUI = node => {
+  const initUI = useCallback(node => {
     if (!node) return;
+
     mmRef.current = node;
     const nodeRef = mmRef.current;
 
@@ -160,19 +139,14 @@ const GlUi = ({dispatch}) => {
     mmFadeIn.clampWhenFinished = true;
     mmFadeIn.loop = THREE.LoopOnce;
     // mmFadeIn.play();
-  }
+  }, []);
 
-  const initHtml = node => {
+  const initHtml = useCallback(node => {
     if(!node) return;
     htmlRef.current = node;
     console.log(`htmlRef.current:`, htmlRef.current);
-    // gl.setRenderTarget(htmlRenderTarget);
-    // htmlScene.clear();
-    // htmlScene.add(htmlRef.current);
-    // gl.render(htmlScene, camera);
     gl.copyFramebufferToTexture(htmlFrameBufferOffset, htmlFrameBuffer);
-    // gl.setRenderTarget(null);
-  }
+  }, []);
 
   const htmlOnOcclude = visible => {
     console.log(`visible:`, visible);
@@ -183,7 +157,6 @@ const GlUi = ({dispatch}) => {
       htmlRef.current.classList.remove('opacity-0');
     }
   }
-
 
   const htmlBeforeRender = (renderer, scene, camera, geometry, material, group) => {
     if (htmlRef.current) {
@@ -200,11 +173,24 @@ const GlUi = ({dispatch}) => {
   moveToGarden.setLoop(THREE.LoopOnce);
   moveToGarden.clampWhenFinished = true;
 
-  const dispatcher = new EventTarget();
-  const onAboutMeClick = (e) => {
+  const aboutMeRef = useRef(null);
+
+  const initAboutMe = node => {
+    if(!node) return;
+    aboutMeRef.current = node;
+    console.log(`aboutMeRef.current:`, aboutMeRef.current)
+    registerEventListener('show-about-me', () => {
+      aboutMeRef.current.classList.remove('opacity-0');
+      aboutMeRef.current.classList.add('opacity-100');
+      aboutMeRef.current.classList.remove('backdrop-blur-0');
+      aboutMeRef.current.classList.add('backdrop-blur');
+    })
+  }
+
+  const onAboutMeClick = useCallback(e => {
     moveToGarden.play();
     dispatch('open-left-shoji');
-  }
+  }, []);
 
   useFrame((_, delta) => {
     mmRef.current && mmMixer?.update(delta);
@@ -270,7 +256,7 @@ const GlUi = ({dispatch}) => {
           useMap3:true,
           map3:natureSceneTex,
           map3UVScale: vec2(1,1),
-          greyScale:true, 
+          greyScale:true,
           greyOffset:0.4, 
           greyRange:vec2(0.0, 1.0),
           greyMinCutoff:0.0, 
@@ -296,12 +282,39 @@ const GlUi = ({dispatch}) => {
               <li><button><span className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900'>Contact</span></button></li>
             </menu>   
         </Html>
-        <Html position={[-275, -575, .00002]} scale={[150, 150, 1]} transform occlude='blending' side={THREE.DoubleSide} renderOrder={10}>
+        <Html position={[-275, -575, .0002]} scale={[150, 150, 1]} transform occlude='blending' side={THREE.DoubleSide} renderOrder={10}>
           <Jitsuin />
         </Html>
       </mesh>
-      <mesh>
-        
+      <mesh position={[-16.43, 1.75, -5.15]} scale={[3.25, 3.75, 1]} >
+        {/* <planeGeometry args={[2,2]} /> */}
+        {/* <shaderMaterial args={[StdShader({map:glassTex, UVScale:vec2(2,2), bokeh:true, greyScale:true, opacity:0.3})]} /> */}
+        <Html className='w-[53vw] h-[100vh] text-3xl p-3 text-japan-red bg-black bg-opacity-60  [tansition-property: opacity, --tw-backdrop-blur] duration-[1500ms] opacity-0 delay-[6s] backdrop-blur-0 overflow-y-auto' ref={initAboutMe} >
+          <p className='pb-4'>
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia,
+molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum
+numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium
+optio, eaque rerum! Provident similique accusantium nemo autem.</p> 
+<p className='pb-4'>Veritatis obcaecati tenetur iure eius earum ut molestias architecto voluptate aliquam
+nihil, eveniet aliquid culpa officia aut! Impedit sit sunt quaerat, odit,
+tenetur error, harum nesciunt ipsum debitis quas aliquid. </p>
+<p className='pb-4'>Reprehenderit,quia. Quo neque error repudiandae fuga? Ipsa laudantium molestias eos 
+sapiente officiis modi at sunt excepturi expedita sint? Sed quibusdam
+recusandae alias error harum maxime adipisci amet laborum. Perspiciatis 
+minima nesciunt dolorem! </p>
+<p className='pb-4'>Officiis iure rerum voluptates a cumque velit 
+quibusdam sed amet tempora. Sit laborum ab, eius fugit doloribus tenetur 
+fugiat, temporibus enim commodi iusto libero magni deleniti quod quam 
+consequuntur! Commodi minima excepturi repudiandae velit hic maxime
+doloremque. </p>
+<p className='pb-4'>Quaerat provident commodi consectetur veniam similique ad 
+earum omnis ipsum saepe, voluptas, hic voluptates pariatur est explicabo 
+fugiat, dolorum eligendi quam cupiditate excepturi mollitia maiores labore 
+suscipit quas? Nulla, placeat.</p> 
+<p className='pb-4'> Voluptatem quaerat non architecto ab laudantium modi minima sunt esse temporibus sint culpa, recusandae aliquam numquam 
+totam ratione voluptas quod exercitationem fuga. Possimus quis earum veniam 
+quasi aliquam eligendi, placeat qui corporis!</p>
+        </Html>
       </mesh>
     </group>
   );

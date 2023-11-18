@@ -54,29 +54,132 @@ void main() {
 }
 `
 const stdFragmentShader= `
-      
-uniform int colorsSelectCount, edge;
+
+uniform int colorsSelectCount, edge, bokehPasses;
+uniform int uBokehSampleCount;
 uniform sampler2D map, map2, map3, backMap;
 uniform vec3 RGBScale, RGBOffset, map2Color, selectColor;
-uniform vec2 UVScale, UVOffset, map2UVScale, map2UVOffset, map3UVScale, map3UVOffset, redRange, greenRange, blueRange, greyRange, alphaRange;
-uniform bool useColorSelect, useMap2, useMap3, useBackMap, greyScale;
-uniform float alphaMinCutoff, alphaMaxCutoff, map2Scale, map2MaxCutoff, greyOffset, greyMinCutoff, greyMaxCutoff, negative, opacity, tolerance;
-
+uniform vec2 UVScale, UVOffset, map2UVScale, map2UVOffset, map3UVScale, map3UVOffset, redRange, greenRange, blueRange, greyRange, alphaRange, psr;
+uniform bool useColorSelect, useMap2, useMap3, useBackMap, greyScale, BnW, bokeh;
+uniform float alphaMinCutoff, alphaMaxCutoff, map2Scale, map2MaxCutoff, greyOffset, greyMinCutoff, greyMaxCutoff, negative, opacity, tolerance, BnWThreshold, bokehScale;
 
 varying vec2 vUv;
+vec2 circleCoords(float deg);
+
+float PI = 3.141592653589793;
+vec2 circleCoords(float deg, float offset) {
+  float rad = PI / 180.0 * deg;
+  float x = cos(rad) * (psr.x + offset);
+  float y = sin(rad) * (psr.y + offset);
+
+  return vec2(x, y);
+}
 
 void main() {
 
   vec2 scaledUV = vec2(vUv.x * UVScale.x + UVOffset.x, vUv.y * UVScale.y + UVOffset.y);
   vec4 mapCol = texture2D(map, scaledUV);
+  const int bokehSampleCount = 16;
 
   vec4 col = mapCol;
 
-  float contrastThreshold = 0.4;
+  float red = col.r, green = col.g, blue = col.b, grey, alpha;
+  
+  if(bokeh) {
+    float r, g, b;
 
-  float red, green, blue, grey, alpha;
+    for(int j = 0; j < bokehPasses; j++) {
+    float offset = 0.003125;
+    
+    vec2 a0 = scaledUV + circleCoords(0.0, offset);
+    // vec2 a22_5 = scaledUV + circleCoords(22.5, offset);
+    // vec2 a45 = scaledUV + circleCoords(45.0, offset);
+    vec2 a60 = scaledUV + circleCoords(60.0, offset);
+    // vec2 a67_5 = scaledUV + circleCoords(67.5, offset);
+    // vec2 a90 = scaledUV + circleCoords(90.0, offset);
+    // vec2 a112_5 = scaledUV + circleCoords(112.5, offset);
+    vec2 a120 = scaledUV + circleCoords(120.0, offset);
+    // vec2 a135 = scaledUV + circleCoords(135.0, offset);
+    // vec2 a157_5 = scaledUV + circleCoords(157.5, offset);
+    vec2 a180 = scaledUV + circleCoords(180.0, offset);
+    // vec2 a202_5 = scaledUV + circleCoords(202.5, offset);
+    // vec2 a225 = scaledUV + circleCoords(225.0, offset);
+    vec2 a240 = scaledUV + circleCoords(240.0, offset);
+    // vec2 a247_5 = scaledUV + circleCoords(247.5, offset);
+    // vec2 a270 = scaledUV + circleCoords(270.0, offset);
+    // vec2 a292_5 = scaledUV + circleCoords(292.5, offset);
+    vec2 a300 = scaledUV + circleCoords(300.0, offset);
+    // vec2 a315 = scaledUV + circleCoords(315.0, offset);
+    // vec2 a337_5 = scaledUV + circleCoords(337.5, offset);
 
-  grey = (col.r + col.g + col.b) / 3.0;
+    vec4 c0 = texture2D(map, a0);
+    // vec4 c22_5 = texture2D(map, a22_5);
+    // vec4 c45 = texture2D(map, a45);
+    vec4 c60 = texture2D(map, a60);
+    // vec4 c67_5 = texture2D(map, a67_5);
+    // vec4 c90 = texture2D(map, a90);
+    // vec4 c112_5 = texture2D(map, a112_5);
+    vec4 c120 = texture2D(map, a120);
+    // vec4 c135 = texture2D(map, a135);
+    // vec4 c157_5 = texture2D(map, a157_5);
+    vec4 c180 = texture2D(map, a180);
+    // vec4 c202_5 = texture2D(map, a202_5);
+    // vec4 c225 = texture2D(map, a225);
+    vec4 c240 = texture2D(map, a240);
+    // vec4 c247_5 = texture2D(map, a247_5);
+    // vec4 c270 = texture2D(map, a270);
+    // vec4 c292_5 = texture2D(map, a292_5);
+    vec4 c300 = texture2D(map, a300);
+    // vec4 c315 = texture2D(map, a315);
+    // vec4 c337_5 = texture2D(map, a337_5);
+
+    // float sampleCount = floor(intBitsToFloat(bokehSampleCount));
+
+    // vec4 samples[16] = vec4[16](c0,c22_5,c45,c67_5,c90,c112_5,c135,c157_5,c180,c202_5,c225,c247_5,c270,c292_5,c315,c337_5);
+    // vec4 samples[4] = vec4[4](c0,c90,c180,c270);
+    vec4 samples[6] = vec4[6](c0,c60,c120,c180,c240,c300);
+
+
+
+    // float bokehAngleStep = 360.0 / 4.0;
+    // for(float angle = 0.0; angle <= 360.0; angle += bokehAngleStep) {
+    //   vec2 coords = scaledUV + circleCoords(angle);
+    //   int index = 360 / floatBitsToInt(floor(angle / bokehAngleStep));
+    //   samples[index] = texture2D(map, coords);
+    // }
+    
+      r = g = b = 0.0;
+    
+      for(int i = 0; i < 6; i++) {
+        r += samples[i].r;
+        g += samples[i].g;
+        b += samples[i].b;
+      }
+
+      // r /= 16.0;
+      // g /= 16.0;
+      // b /= 16.0;
+      r /= 6.0;
+      g /= 6.0;
+      b /= 6.0;
+      for(int i = 0; i < samples.length(); i++) {
+        samples[i] = vec4(r, g, b, samples[i].a);
+      }
+    }
+    red = (red * (1.0 - bokehScale)) +  r * bokehScale;
+    green = (green * (1.0 - bokehScale)) + g * bokehScale;
+    blue = (blue * (1.0 - bokehScale)) + b * bokehScale;
+    
+    // red = 0.93;
+    // green = 0.0;
+    // blue = 0.0; 
+  }
+  
+  col.r = red;
+  col.g = green;
+  col.b = blue;
+
+  grey = (red + green + blue) / 3.0;
   alpha = clamp(col.a, alphaRange.x, alphaRange.y);
 
   if(greyScale) {
@@ -87,26 +190,30 @@ void main() {
 
     red = green = blue = grey * scale + offset + greyOffset;
 
-    if(useColorSelect) {
-      if(mapCol.r >= (selectColor.x - tolerance) && mapCol.r <= (selectColor.x + tolerance)
-        && mapCol.g >= (selectColor.y - tolerance) && mapCol.g <= (selectColor.y + tolerance)
-        && mapCol.b >= (selectColor.z - tolerance) && mapCol.b <= (selectColor.z + tolerance)) {
-          red = mapCol.r + greyOffset + RGBOffset.r;
-          green = mapCol.g + greyOffset + RGBOffset.g;
-          blue = mapCol.b + greyOffset + RGBOffset.b;
+    if(BnW) {
+      if (grey >= BnWThreshold) {
+        red = green = blue = greyRange.y;
       }
+      else {
+        red = green = blue = greyRange.x;
+      } 
+    }
 
-      // red = 0.93;
-      // green = 0.0;
-      // blue = 0.0;
-
+    if(useColorSelect) {
+      if(col.r >= (selectColor.x - tolerance) && col.r <= (selectColor.x + tolerance)
+        && col.g >= (selectColor.y - tolerance) && col.g <= (selectColor.y + tolerance)
+        && col.b >= (selectColor.z - tolerance) && col.b <= (selectColor.z + tolerance)) {
+          red = col.r + greyOffset + RGBOffset.r;
+          green = col.g + greyOffset + RGBOffset.g;
+          blue = col.b + greyOffset + RGBOffset.b;
+      }
     }
 
   } else {
 
-    red = clamp(col.r * alpha * RGBScale.r + RGBOffset.r + greyOffset, redRange.x, redRange.y);
-    green = clamp(col.g * alpha * RGBScale.g + RGBOffset.g + greyOffset, greenRange.x + greyOffset, greenRange.y);
-    blue = clamp(col.b * alpha * RGBScale.b + RGBOffset.b + greyOffset, blueRange.x, blueRange.y);
+    red = clamp(red * alpha * RGBScale.r + RGBOffset.r + greyOffset, redRange.x, redRange.y);
+    green = clamp(green * alpha * RGBScale.g + RGBOffset.g + greyOffset, greenRange.x + greyOffset, greenRange.y);
+    blue = clamp(blue * alpha * RGBScale.b + RGBOffset.b + greyOffset, blueRange.x, blueRange.y);
 
     if(col.r < greyMinCutoff || col.r > greyMaxCutoff ||
       col.g < greyMinCutoff || col.g > greyMaxCutoff ||
@@ -196,8 +303,12 @@ void main() {
     }
   }
 
+  
+
   if(grey < greyMinCutoff || grey > greyMaxCutoff ||
     col.a < alphaMinCutoff || col.a > alphaMaxCutoff) { discard; }
+
+  
 
   gl_FragColor = vec4(red, green, blue, opacity);
 
@@ -309,7 +420,14 @@ const StdShader = ({
   alphaMinCutoff,
   alphaMaxCutoff,
   greyOffset, 
-  greyScale, 
+  greyScale,
+  BnW,
+  BnWThreshold,
+  bokeh,
+  bokehPasses,
+  bokehSampleCount,
+  bokehScale,
+  psr,
   greyMinCutoff,
   greyMaxCutoff,
   useColorSelect,
@@ -349,6 +467,13 @@ const StdShader = ({
       alphaMaxCutoff: {value: alphaMaxCutoff || 1.0},
       greyOffset: {value: greyOffset || 0.0},
       greyScale: {value: greyScale || false},
+      BnW: { value: BnW },
+      BnWThreshold: { value: BnWThreshold || 0.5},
+      bokeh: {value: bokeh || false },
+      bokehPasses: { value: bokehPasses || 1},
+      bokehSampleCount: { value: bokehSampleCount || 8 },
+      bokehScale: { value: bokehScale || 1.0 },
+      psr: { value: psr || vec2(0.01, 0.01) },
       useColorSelect: { value: useColorSelect || false },
       selectColor: {value: selectColor || vec3(1,1,1)},
       tolerance: { value: tolerance || 0.1 },
@@ -417,6 +542,10 @@ const StdShader = ({
     greyRange: {
       get() { return this.uniforms.greyRange.value;},
       set(val) { this.uniforms.greyRange.value = val; }
+    },
+    bokehScale: {
+      get() { return this.uniforms.bokehScale.value; },
+      set(val) { this.uniforms.bokehScale.value = val; }
     }
 
   });

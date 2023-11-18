@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import * as THREE from 'three';
 import { useLoader } from '@react-three/fiber';
 import { SpinnerShader } from './shaders/shader';
@@ -14,7 +14,14 @@ const vec4 = (n1 = null, n2 = null, n3 = null, n4 = null) => new THREE.Vector4(n
 
 const Enso = ({ position = vec3(0, 0, 0), scale = vec3(1, 1, 1), rotation = new THREE.Euler(0, 0, 0) }) => {
   const { gl, scene, camera } = useThree();
-
+  // camera.rotation.y = 0;
+  // camera.rotation.x = 0;
+  // camera.rotation.z = 0;
+  // camera.position.x = -8;
+  // camera.position.y = 3.1;
+  // camera.position.z = 1.2;
+  
+  
   const dpr = gl.getPixelRatio();
 
   const size = vec3(0,0,0);
@@ -103,7 +110,7 @@ const Enso = ({ position = vec3(0, 0, 0), scale = vec3(1, 1, 1), rotation = new 
   return (
     <mesh position={[position.x, position.y, position.z]} scale={[scale.x, scale.y, scale.z]} rotation={new THREE.Euler(rotation.x, rotation.y, rotation.z)} ref={initMesh} >
       <planeGeometry args={[mask.image.width * dpr, mask.image.height * dpr]} />
-      <shaderMaterial args={[SpinnerShader({ mask: mask, UVScale:vec2(1.8, 1.8 / (scale.x / scale.y) ), UVOffset:vec2(-0.15, 0.1), filmGrainMap:filmGrainTex, filmGrainUVScale:vec2(0.5, 0.5 / (scale.x / scale.y)), filmGrainUVOffset:vec2(0.2,0.1), color: vec4(0.2,0.2, 0.2, 1) })]} wireframe={false} />
+      <shaderMaterial args={[SpinnerShader({ mask: mask, UVScale:vec2(2, 2 / (scale.x / scale.y) ), UVOffset:vec2(0.025, -0.05), filmGrainMap:filmGrainTex, filmGrainUVScale:vec2(0.5, 0.5 / (scale.x / scale.y)), filmGrainUVOffset:vec2(0.2,0.1), color: vec4(0.2,0.2, 0.2, 1) })]} wireframe={false} />
     </mesh>
   );
 }
