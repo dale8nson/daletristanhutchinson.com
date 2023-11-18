@@ -67,21 +67,6 @@ const GlUi = ({dispatch, registerEventListener}) => {
   mmAlphaTrack = new THREE.NumberKeyframeTrack('.opacity', [0, 14, 15], [0, 0, 1]);
   mmClip = new THREE.AnimationClip('', 15, [mmAlphaTrack]);
 
-  const HtmlMainMenu = useCallback(() => {
-    return (
-      <Html position={[0, 0, 0]} scale={[1, 1, 1]} occlude='blending' distanceFactor={10} renderOrder={5} ref={console.log} >
-        <div>
-          <menu style={{ zIndex: 100 }}>
-            <li><button><span className='text-sm font-[lemon-tuesday] grayscale-0 font-bold text-japan-red hover:text-red-900'>About Me</span></button></li>
-            <li><button><span className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900' >About This Site</span></button></li>
-            <li><button><span className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900'>My Resume</span></button></li>
-            <li><button><span className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900'>Contact</span></button></li>
-          </menu>
-        </div>
-      </Html>
-    )
-  }, []);
-
   const htmlFrameBuffer = new THREE.FramebufferTexture(size.x * dpr, size.y * dpr);
   htmlFrameBuffer.wrapS = htmlFrameBuffer.wrapT = THREE.RepeatWrapping;
   htmlFrameBuffer.format = THREE.RGBAFormat;
@@ -141,12 +126,12 @@ const GlUi = ({dispatch, registerEventListener}) => {
     // mmFadeIn.play();
   }, []);
 
-  const initHtml = useCallback(node => {
+  const initHtml = node => {
     if(!node) return;
     htmlRef.current = node;
     console.log(`htmlRef.current:`, htmlRef.current);
     gl.copyFramebufferToTexture(htmlFrameBufferOffset, htmlFrameBuffer);
-  }, []);
+  };
 
   const htmlOnOcclude = visible => {
     console.log(`visible:`, visible);
@@ -187,10 +172,10 @@ const GlUi = ({dispatch, registerEventListener}) => {
     })
   }
 
-  const onAboutMeClick = useCallback(e => {
+  const onAboutMeClick = e => {
     moveToGarden.play();
     dispatch('open-left-shoji');
-  }, []);
+  };
 
   useFrame((_, delta) => {
     mmRef.current && mmMixer?.update(delta);
@@ -282,7 +267,7 @@ const GlUi = ({dispatch, registerEventListener}) => {
               <li><button><span className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900'>Contact</span></button></li>
             </menu>   
         </Html>
-        <Html position={[-275, -575, .0002]} scale={[150, 150, 1]} transform occlude='blending' side={THREE.DoubleSide} renderOrder={10}>
+        <Html position={[-275, -575, .00001]} scale={[150, 150, 1]} transform occlude side={THREE.DoubleSide} renderOrder={10}>
           <Jitsuin />
         </Html>
       </mesh>
