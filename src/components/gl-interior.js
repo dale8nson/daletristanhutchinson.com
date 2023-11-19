@@ -699,6 +699,9 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
   const glassTex = useLoader(THREE.TextureLoader, glass);
   glassTex.wrapS = glassTex.wrapT = THREE.RepeatWrapping;
 
+  const { scene } = useThree();
+
+  console.log(`scene:`, JSON.stringify(scene.toJSON()));
   // const bc = new BroadcastChannel('loudspeaker');
   // bc.postMessage('this is a test from gl-interior');
 
@@ -750,7 +753,7 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
     camAnimMixer = new THREE.AnimationMixer(camera);
     camAnimAction = camAnimMixer.clipAction(camAnimClip);
     camAnimAction.setLoop(THREE.LoopOnce);
-    camAnimAction.play();
+    // camAnimAction.play();
 
   }, []);
 
@@ -767,7 +770,7 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
     fusuAnimClip = new THREE.AnimationClip('', 16, [fusuXTrack]);
     fusuAction = fusuAnimMixer.clipAction(fusuAnimClip);
     fusuAction.setLoop(THREE.LoopOnce);
-    fusuAction.play();
+    // fusuAction.play();
   }, []);
 
   let leftShojiMixer, leftShojiXCloseTrack, leftShojiXOpenTrack, leftShojiCloseClip, leftShojiOpenClip, openLeftShoji, closeLeftShoji;
@@ -786,8 +789,8 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
     // openLeftShoji.play();
     registerEventListener('open-left-shoji', () => {
       leftShojiRef.current.position.x = -10.1;
-      openLeftShoji.play();
-      akiBoke.play();
+      // openLeftShoji.play();
+      // akiBoke.play();
       dispatch('show-about-me');
     })
   }, []);

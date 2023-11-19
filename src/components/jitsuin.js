@@ -2,7 +2,7 @@ import { Html } from "@react-three/drei";
 
 const Jitsuin = () => {
   return (
-    <div className='w-[1.88rem] h-[1.88rem] p-[0.0] border-japan-red border-solid border-[0.06125rem] bg-japan-red justify-center align-middle content-center rounded-sm ' >
+    <div className=' flex absolute p-[0.75%] border-japan-red border-solid border-[0.06125rem] bg-japan-red justify-center align-middle content-center rounded-sm' >
           <span className='font-mono text-white text-[0.675rem] [letter-spacing:-0.12rem] [line-height:0.59rem] [writing-mode:vertical-rl]'>
             <strong>
               <span className='[letter-spacing:-0.1rem]'>

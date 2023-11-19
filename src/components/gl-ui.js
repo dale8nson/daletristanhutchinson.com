@@ -173,8 +173,8 @@ const GlUi = ({dispatch, registerEventListener}) => {
   }
 
   const onAboutMeClick = e => {
-    moveToGarden.play();
-    dispatch('open-left-shoji');
+    // moveToGarden.play();
+    // dispatch('open-left-shoji');
   };
 
   useFrame((_, delta) => {
@@ -267,7 +267,7 @@ const GlUi = ({dispatch, registerEventListener}) => {
               <li><button><span className='text-sm font-[lemon-tuesday] font-bold text-japan-red hover:text-red-900'>Contact</span></button></li>
             </menu>   
         </Html>
-        <Html position={[-275, -575, .00001]} scale={[150, 150, 1]} transform occlude side={THREE.DoubleSide} renderOrder={10}>
+        <Html position={[-380, -300, .00001]} scale={[150, 150, 1]} transform occlude side={THREE.DoubleSide} renderOrder={10}>
           <Jitsuin />
         </Html>
       </mesh>
