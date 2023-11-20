@@ -3,31 +3,31 @@ import { Html } from "@react-three/drei";
 const Jitsuin = () => {
   return (
     <div className=' flex absolute p-[0.75%] border-japan-red border-solid border-[0.06125rem] bg-japan-red justify-center align-middle content-center rounded-sm' >
-          <span className='font-mono text-white text-[0.675rem] [letter-spacing:-0.12rem] [line-height:0.59rem] [writing-mode:vertical-rl]'>
+          <span className='font-mono text-white [line-height:100%] [writing-mode:vertical-rl]'>
             <strong>
-              <span className='[letter-spacing:-0.1rem]'>
+              <span className='[letter-spacing:0.1em]'>
                 ハ
                 <span className=''>
-                  <span className='text-[0.6rem]'>
+                  <span className='text-[85%]'>
                     ッ
                   </span>
                     チ
                 </span>
               </span>
               <br/>
-              <span className='text-[0.575rem] [letter-spacing:0.1rem]'>
+              <span className=''>
                 ン
-                <span className='[letter-spacing:-0.0775rem]'>
+                <span className=''>
                   ソン
                 </span>
               </span>
               <br/>
-              <span className='[line-height:-1rem]'>
-                <span className='[letter-spacing:-1rem]'>
-                  <span className='text-[0.65rem] [letter-spacing:-0.15rem]'>
+              <span className=''>
+                <span className=''>
+                  <span className=''>
                     デ
                   </span>
-                  <span className=' text-[0.65rem] [letter-spacing:-0.01rem]'>
+                  <span className=''>
                     イル
                   </span>
                 </span> 
