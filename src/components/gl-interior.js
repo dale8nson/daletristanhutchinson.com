@@ -699,7 +699,7 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
   const glassTex = useLoader(THREE.TextureLoader, glass);
   glassTex.wrapS = glassTex.wrapT = THREE.RepeatWrapping;
 
-  const { scene } = useThree();
+  const { scene, camera } = useThree();
 
   console.log(`scene:`, JSON.stringify(scene.toJSON()));
   // const bc = new BroadcastChannel('loudspeaker');
@@ -711,7 +711,6 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
   //   console.log(`message received: ${e.data}`);
   // }
 
-  const { camera } = useThree();
   // console.log(`camera:`, camera);
   const leftShojiRef = useRef(null);
 
@@ -753,7 +752,7 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
     camAnimMixer = new THREE.AnimationMixer(camera);
     camAnimAction = camAnimMixer.clipAction(camAnimClip);
     camAnimAction.setLoop(THREE.LoopOnce);
-    // camAnimAction.play();
+    camAnimAction.play();
 
   }, []);
 
@@ -770,7 +769,7 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
     fusuAnimClip = new THREE.AnimationClip('', 16, [fusuXTrack]);
     fusuAction = fusuAnimMixer.clipAction(fusuAnimClip);
     fusuAction.setLoop(THREE.LoopOnce);
-    // fusuAction.play();
+    fusuAction.play();
   }, []);
 
   let leftShojiMixer, leftShojiXCloseTrack, leftShojiXOpenTrack, leftShojiCloseClip, leftShojiOpenClip, openLeftShoji, closeLeftShoji;
@@ -789,8 +788,8 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
     // openLeftShoji.play();
     registerEventListener('open-left-shoji', () => {
       leftShojiRef.current.position.x = -10.1;
-      // openLeftShoji.play();
-      // akiBoke.play();
+      openLeftShoji.play();
+      akiBoke.play();
       dispatch('show-about-me');
     })
   }, []);
@@ -846,7 +845,7 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
   });
 
   return (
-    <>
+    <group ref={node => console.log(`scene:`, JSON.stringify(node.toJSON()))}>
       <Backdrop map={planks} position={vec3(-9, 3, -7.68)} scale={vec3(.08, .015, 1)} rotation={new THREE.Euler((Math.PI / 2), 0, 0)} UVScale={vec2(16, 16)} backMap={planks} greyScale={true} greyOffset={-0.2} />
 
       <Post scale={vec3(0.00582, 0.0015, 1)} position={vec3(0.0, -2.5, 0)} renderOrder={35} />
@@ -919,7 +918,7 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
       <Post scale={vec3(0.00595, 0.0017, 1)} position={vec3(-11.075, 0.15, -5.55)} />
       <Post scale={vec3(0.00595, 0.0015, 1)} position={vec3(-10.975, 0.27, -5.8)} rotation={new THREE.Euler(0, Math.PI / 2, (Math.PI / 2))} greyScale={true} greyOffset={-0.075} />
       <Brace scale={vec3(0.009, 0.0008, 1)} position={vec3(-7.4, -3.95, -5.625)} rotation={new THREE.Euler(-(Math.PI / 2), 0, 0)} greyScale={true} greyOffset={-0.075} />
-    </>
+    </group>
   );
 };
 

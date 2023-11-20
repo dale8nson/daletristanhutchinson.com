@@ -173,8 +173,8 @@ const GlUi = ({dispatch, registerEventListener}) => {
   }
 
   const onAboutMeClick = e => {
-    // moveToGarden.play();
-    // dispatch('open-left-shoji');
+    moveToGarden.play();
+    dispatch('open-left-shoji');
   };
 
   useFrame((_, delta) => {
@@ -195,7 +195,7 @@ const GlUi = ({dispatch, registerEventListener}) => {
 
   return (
     <group  position={[position.x, position.y, position.z]}>
-      <mesh position={[0,  0.4, 0]} scale={[.0015, .0015, 1]} rotation={new THREE.Euler(0, 0, 0)} >
+      <mesh position={[0,0.4, 0]} scale={[.0015, .0015, 1]} rotation={new THREE.Euler(0, 0, 0)} >
         <planeGeometry args={[kjTex.image.width * dpr, kjTex.image.height * dpr]} />
         <shaderMaterial args={[StdShader({
           map: kjTex,

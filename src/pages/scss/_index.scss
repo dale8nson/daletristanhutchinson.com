@@ -16,8 +16,8 @@ body {
   top: 0;
   left: 0;
   width: $canvas-width;
-  // height: calc($canvas-width / 1.8306351183063512) !important;
-  height: calc($canvas-width / (16 / 9)) !important;
+  height: calc($canvas-width / 1.8306351183063512) !important;
+  // height: calc($canvas-width / (16 / 9)) !important;
 }
 
 #ui {
