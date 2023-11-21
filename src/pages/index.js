@@ -16,7 +16,7 @@ const vec3 = (n1, n2, n3) => new THREE.Vector3(n1, n2, n3);
 const IndexPage = () => {
 
   const dispatch = useCallback(e => {
-    console.log(`event received:`, e);
+    // console.log(`event received:`, e);
     eventListeners[e]();
   }, []);
 
@@ -45,7 +45,7 @@ const IndexPage = () => {
   // },[]);
 
   return (
-    <Canvas id='canvas' onScroll={() => null} ref={initCanvas} onResize={null} >
+    <Canvas id='canvas' ref={initCanvas} >
       {/* <ambientLight />  */}
       {/* <Enso position={vec3(3.5,-0.95,0)} scale={vec3(.004125, .0015, 1)} /> */}
       <directionalLight position={new THREE.Vector3(-40, 0, 10)} args={[0xffffff, 1.2]} castShadow={false} />

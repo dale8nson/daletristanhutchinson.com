@@ -13,6 +13,66 @@
   src: url('../assets/fonts/Lemon\ Tuesday.otf');
 }
 
+@font-face {
+  font-family: 'redacted';
+  src: url('../assets/fonts/Redacted_Script/RedactedScript-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'nerko-one';
+  src: url('../assets/fonts/Nerko_One/NerkoOne-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'walter-turncoat';
+  src: url('../assets/fonts/Walter_Turncoat/WalterTurncoat-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'salsa';
+  src: url('../assets/fonts/Salsa/Salsa-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'love';
+  src: url('../assets/fonts/Love_Ya_Like_A_Sister/LoveYaLikeASister-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'kaushan';
+  src: url('../assets/fonts/Kaushan_Script/KaushanScript-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'farsan';
+  src: url('../assets/fonts/Farsan/Farsan-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'slackside';
+  src: url('../assets/fonts/Slackside_One/SlacksideOne-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'splash';
+  src: url('../assets/fonts/Splash/Splash-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'estonia';
+  src: url('../assets/fonts/Estonia/Estonia-Regular.ttf'); 
+}
+
+@font-face {
+  font-family: 'yuji';
+  src: url('../assets/fonts/Yuji_Hentaigana_Akebono/YujiHentaiganaAkebono-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'cabin';
+  src: url('../assets/fonts/Cabin/static/Cabin-Regular.ttf');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

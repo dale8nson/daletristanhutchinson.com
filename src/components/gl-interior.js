@@ -695,13 +695,13 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
   const akiTex = useVideoTexture(autumnLeaves);
   akiTex.format = THREE.RGBAFormat;
   akiTex.wrapS = akiTex.wrapT = THREE.RepeatWrapping;
-  console.log(`akiTex:`, akiTex);
+  // console.log(`akiTex:`, akiTex);
   const glassTex = useLoader(THREE.TextureLoader, glass);
   glassTex.wrapS = glassTex.wrapT = THREE.RepeatWrapping;
 
   const { scene, camera } = useThree();
 
-  console.log(`scene:`, JSON.stringify(scene.toJSON()));
+  // console.log(`scene:`, JSON.stringify(scene.toJSON()));
   // const bc = new BroadcastChannel('loudspeaker');
   // bc.postMessage('this is a test from gl-interior');
 
@@ -752,7 +752,7 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
     camAnimMixer = new THREE.AnimationMixer(camera);
     camAnimAction = camAnimMixer.clipAction(camAnimClip);
     camAnimAction.setLoop(THREE.LoopOnce);
-    camAnimAction.play();
+    // camAnimAction.play();
 
   }, []);
 
@@ -769,7 +769,7 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
     fusuAnimClip = new THREE.AnimationClip('', 16, [fusuXTrack]);
     fusuAction = fusuAnimMixer.clipAction(fusuAnimClip);
     fusuAction.setLoop(THREE.LoopOnce);
-    fusuAction.play();
+    // fusuAction.play();
   }, []);
 
   let leftShojiMixer, leftShojiXCloseTrack, leftShojiXOpenTrack, leftShojiCloseClip, leftShojiOpenClip, openLeftShoji, closeLeftShoji;
@@ -793,30 +793,12 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
       dispatch('show-about-me');
     })
   }, []);
-  // dispatcher.addEventListener('open-left-shoji', () => {
-  //   openLeftShoji.play(); 
-  // })
-
-  console.log(`EventDispatcher.prototype.isPrototypeOf(leftShojiRef.current):`, leftShojiRef.current)
-
-  // registerEventListener('open-left-shoji', () => {
-  //   console.log(`open-left-shoji`);
-  //   leftShojiRef.current.position.x = -16.25;
-  //   openLeftShoji.play(); 
-  // })
-
-
-  // useEffect(() => {
-  //   leftShojiRef.current.addEventListener('open-left-shoji', () => {
-  //     // leftShojiRef.current.position.x = -16.25;
-  //     openLeftShoji.play();
-  //   });
-  // }, []);
 
   const akiRef = useRef(null);
-  let akiMixer, akiBokeTrack, akiClip, akiBoke;
+  let akiMixer, akiBokeTrack, akiBrightnesstrack, akiClip, akiBoke;
   akiBokeTrack = new THREE.NumberKeyframeTrack('.bokehScale', [0,5,6], [-0.1,-0.1,1.0]);
-  akiClip = new THREE.AnimationClip('', 6,[akiBokeTrack]);
+  akiBrightnesstrack = new THREE.NumberKeyframeTrack('.greyOffset', [0,5,6], [0,0,-0.2])
+  akiClip = new THREE.AnimationClip('',6,[akiBokeTrack, akiBrightnesstrack]);
 
 
   const initAki = node => {
@@ -828,6 +810,14 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
         bokehScale: {
           get() { return this.material.uniforms.bokehScale.value; },
           set(val) { this.material.uniforms.bokehScale.value = val; }
+        },
+        greyOffset: {
+          get() { 
+            return this.material.uniforms.greyOffset.value;
+          },
+          set(val) {
+            this.material.uniforms.greyOffset.value = val; 
+          }
         }
       })
     }
@@ -845,7 +835,7 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
   });
 
   return (
-    <group ref={node => console.log(`scene:`, JSON.stringify(node.toJSON()))}>
+    <group >
       <Backdrop map={planks} position={vec3(-9, 3, -7.68)} scale={vec3(.08, .015, 1)} rotation={new THREE.Euler((Math.PI / 2), 0, 0)} UVScale={vec2(16, 16)} backMap={planks} greyScale={true} greyOffset={-0.2} />
 
       <Post scale={vec3(0.00582, 0.0015, 1)} position={vec3(0.0, -2.5, 0)} renderOrder={35} />

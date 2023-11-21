@@ -75,109 +75,66 @@ vec2 circleCoords(float deg, float offset) {
   return vec2(x, y);
 }
 
+float gs (vec4 c) {
+  return (c.r + c.g + c.b) / 3.0;
+}
+
 void main() {
 
   vec2 scaledUV = vec2(vUv.x * UVScale.x + UVOffset.x, vUv.y * UVScale.y + UVOffset.y);
   vec4 mapCol = texture2D(map, scaledUV);
   const int bokehSampleCount = 16;
+  ivec2 texSz = textureSize(map, 0).xy;
+  vec2 fTexSz = vec2(intBitsToFloat(texSz.x), intBitsToFloat(texSz.y));
+
 
   vec4 col = mapCol;
 
   float red = col.r, green = col.g, blue = col.b, grey, alpha;
-  
+
   if(bokeh) {
-    float r, g, b;
+    ivec2 texSz = textureSize(map, 0).xy;
+    vec2 fTexSz = vec2(intBitsToFloat(texSz.x), intBitsToFloat(texSz.y));
+    vec2 coords = gl_FragCoord.xy / fTexSz;
+    float sep = bokehScale * 0.5;
 
-    for(int j = 0; j < bokehPasses; j++) {
-    float offset = 0.003125;
-    
-    vec2 a0 = scaledUV + circleCoords(0.0, offset);
-    // vec2 a22_5 = scaledUV + circleCoords(22.5, offset);
-    // vec2 a45 = scaledUV + circleCoords(45.0, offset);
-    vec2 a60 = scaledUV + circleCoords(60.0, offset);
-    // vec2 a67_5 = scaledUV + circleCoords(67.5, offset);
-    // vec2 a90 = scaledUV + circleCoords(90.0, offset);
-    // vec2 a112_5 = scaledUV + circleCoords(112.5, offset);
-    vec2 a120 = scaledUV + circleCoords(120.0, offset);
-    // vec2 a135 = scaledUV + circleCoords(135.0, offset);
-    // vec2 a157_5 = scaledUV + circleCoords(157.5, offset);
-    vec2 a180 = scaledUV + circleCoords(180.0, offset);
-    // vec2 a202_5 = scaledUV + circleCoords(202.5, offset);
-    // vec2 a225 = scaledUV + circleCoords(225.0, offset);
-    vec2 a240 = scaledUV + circleCoords(240.0, offset);
-    // vec2 a247_5 = scaledUV + circleCoords(247.5, offset);
-    // vec2 a270 = scaledUV + circleCoords(270.0, offset);
-    // vec2 a292_5 = scaledUV + circleCoords(292.5, offset);
-    vec2 a300 = scaledUV + circleCoords(300.0, offset);
-    // vec2 a315 = scaledUV + circleCoords(315.0, offset);
-    // vec2 a337_5 = scaledUV + circleCoords(337.5, offset);
+    float minThreshold = 0.1;
+    float maxThreshold = 0.2;
 
-    vec4 c0 = texture2D(map, a0);
-    // vec4 c22_5 = texture2D(map, a22_5);
-    // vec4 c45 = texture2D(map, a45);
-    vec4 c60 = texture2D(map, a60);
-    // vec4 c67_5 = texture2D(map, a67_5);
-    // vec4 c90 = texture2D(map, a90);
-    // vec4 c112_5 = texture2D(map, a112_5);
-    vec4 c120 = texture2D(map, a120);
-    // vec4 c135 = texture2D(map, a135);
-    // vec4 c157_5 = texture2D(map, a157_5);
-    vec4 c180 = texture2D(map, a180);
-    // vec4 c202_5 = texture2D(map, a202_5);
-    // vec4 c225 = texture2D(map, a225);
-    vec4 c240 = texture2D(map, a240);
-    // vec4 c247_5 = texture2D(map, a247_5);
-    // vec4 c270 = texture2D(map, a270);
-    // vec4 c292_5 = texture2D(map, a292_5);
-    vec4 c300 = texture2D(map, a300);
-    // vec4 c315 = texture2D(map, a315);
-    // vec4 c337_5 = texture2D(map, a337_5);
+    vec4 c = texture2D(map, coords);
 
-    // float sampleCount = floor(intBitsToFloat(bokehSampleCount));
+    float fSz = bokehScale * 0.012;
 
-    // vec4 samples[16] = vec4[16](c0,c22_5,c45,c67_5,c90,c112_5,c135,c157_5,c180,c202_5,c225,c247_5,c270,c292_5,c315,c337_5);
-    // vec4 samples[4] = vec4[4](c0,c90,c180,c270);
-    vec4 samples[6] = vec4[6](c0,c60,c120,c180,c240,c300);
+    float mx = 0.0;
 
+    for(float i = -fSz; i < fSz; i += 0.001) {
+      for(float j = -fSz; j < fSz; j += 0.001) {
+        vec2 vij = vec2(i,j);
 
+        if(!(distance(vij, vec2(0,0)) <= fSz)) { continue; }
+        vec2 offsetCoords = vec2(scaledUV + vij * sep);
+        vec4 sc = texture2D(map, offsetCoords);
+        float g = gs(sc);
+        float step = smoothstep(minThreshold, maxThreshold, g);
+        if(g > mx) { 
+          mx = g;
+          red = mix(col.r, sc.r, step);
+          green = mix(col.g, sc.g, step);
+          blue = mix(col.b, sc.b, step);
+        }
 
-    // float bokehAngleStep = 360.0 / 4.0;
-    // for(float angle = 0.0; angle <= 360.0; angle += bokehAngleStep) {
-    //   vec2 coords = scaledUV + circleCoords(angle);
-    //   int index = 360 / floatBitsToInt(floor(angle / bokehAngleStep));
-    //   samples[index] = texture2D(map, coords);
-    // }
-    
-      r = g = b = 0.0;
-    
-      for(int i = 0; i < 6; i++) {
-        r += samples[i].r;
-        g += samples[i].g;
-        b += samples[i].b;
-      }
-
-      // r /= 16.0;
-      // g /= 16.0;
-      // b /= 16.0;
-      r /= 6.0;
-      g /= 6.0;
-      b /= 6.0;
-      for(int i = 0; i < samples.length(); i++) {
-        samples[i] = vec4(r, g, b, samples[i].a);
       }
     }
-    red = (red * (1.0 - bokehScale)) +  r * bokehScale;
-    green = (green * (1.0 - bokehScale)) + g * bokehScale;
-    blue = (blue * (1.0 - bokehScale)) + b * bokehScale;
-    
-    // red = 0.93;
-    // green = 0.0;
-    // blue = 0.0; 
+
   }
   
   col.r = red;
   col.g = green;
   col.b = blue;
+
+  float br = red;
+  float bg = green;
+  float bb = blue;
 
   grey = (red + green + blue) / 3.0;
   alpha = clamp(col.a, alphaRange.x, alphaRange.y);
@@ -212,7 +169,7 @@ void main() {
   } else {
 
     red = clamp(red * alpha * RGBScale.r + RGBOffset.r + greyOffset, redRange.x, redRange.y);
-    green = clamp(green * alpha * RGBScale.g + RGBOffset.g + greyOffset, greenRange.x + greyOffset, greenRange.y);
+    green = clamp(green * alpha * RGBScale.g + RGBOffset.g + greyOffset, greenRange.x, greenRange.y);
     blue = clamp(blue * alpha * RGBScale.b + RGBOffset.b + greyOffset, blueRange.x, blueRange.y);
 
     if(col.r < greyMinCutoff || col.r > greyMaxCutoff ||
@@ -298,7 +255,7 @@ void main() {
 
         red += map3Grey + greyOffset;
         green += map3Grey + greyOffset;
-        blue += map3Grey +greyOffset;
+        blue += map3Grey + greyOffset;
 
     }
   }
@@ -311,7 +268,7 @@ void main() {
   
 
   gl_FragColor = vec4(red, green, blue, opacity);
-
+  // gl_FragColor = vec4(br, bg, bb, opacity);
   // gl_FragColor = vec4(0.93, 0.0, 0.0, 1.0);
 
 }
@@ -550,7 +507,7 @@ const StdShader = ({
 
   });
 
-  console.log(`useColorSelect is set to ${useColorSelect}`);
+  // console.log(`useColorSelect is set to ${useColorSelect}`);
   return mat;
 
 }
