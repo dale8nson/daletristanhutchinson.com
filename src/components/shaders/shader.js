@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-const vec2 = (n1 = null, n2 = null) => new THREE.Vector2 (n1, n2);
+const vec2 = (n1 = null, n2 = null) => new THREE.Vector2(n1, n2);
 const vec3 = (n1 = null, n2 = null, n3 = null) => new THREE.Vector3(n1, n2, n3);
 const vec4 = (n1 = null, n2 = null, n3 = null, n4 = null) => new THREE.Vector4(n1, n2, n3, n4);
 
@@ -53,15 +53,15 @@ void main() {
   gl_Position = projectionMatrix * mvPosition;
 }
 `
-const stdFragmentShader= `
+const stdFragmentShader = `
 
 uniform int colorsSelectCount, edge, bokehPasses;
 uniform int uBokehSampleCount;
-uniform sampler2D map, map2, map3, backMap;
-uniform vec3 RGBScale, RGBOffset, map2Color, selectColor;
+uniform sampler2D map, map2, map3, mask;
+uniform vec3 color, RGBScale, RGBOffset, map2Color, selectColor;
 uniform vec2 UVScale, UVOffset, map2UVScale, map2UVOffset, map3UVScale, map3UVOffset, redRange, greenRange, blueRange, greyRange, alphaRange, psr;
-uniform bool useColorSelect, useMap2, useMap3, useBackMap, greyScale, BnW, bokeh;
-uniform float alphaMinCutoff, alphaMaxCutoff, map2Scale, map2MaxCutoff, greyOffset, greyMinCutoff, greyMaxCutoff, negative, opacity, tolerance, BnWThreshold, bokehScale;
+uniform bool useColorSelect, useMap2, useMap3, useBackMap, greyScale, BnW, bokeh, map2Bokeh, map2Mask;
+uniform float alphaMinCutoff, alphaMaxCutoff, map2Scale, map2MaxCutoff, map2GreyOffset, greyOffset, greyMinCutoff, greyMaxCutoff, negative, opacity, tolerance, BnWThreshold, bokehScale, map2BokehScale;
 
 varying vec2 vUv;
 vec2 circleCoords(float deg);
@@ -79,18 +79,30 @@ float gs (vec4 c) {
   return (c.r + c.g + c.b) / 3.0;
 }
 
+float gs (vec3 c) {
+  return (c.r + c.g + c.b) / 3.0;
+}
+
 void main() {
-
-  vec2 scaledUV = vec2(vUv.x * UVScale.x + UVOffset.x, vUv.y * UVScale.y + UVOffset.y);
-  vec4 mapCol = texture2D(map, scaledUV);
+  float red, green, blue, grey, alpha;
+  vec2 scaledUV;
+  vec4 mapCol;
   const int bokehSampleCount = 16;
-  ivec2 texSz = textureSize(map, 0).xy;
-  vec2 fTexSz = vec2(intBitsToFloat(texSz.x), intBitsToFloat(texSz.y));
+  ivec2 texSz;
+  vec2 fTexSz;
+  vec4 col;
+  bool useColor = false;
 
+  scaledUV = vec2(vUv.x * UVScale.x + UVOffset.x, vUv.y * UVScale.y + UVOffset.y);
+  mapCol = texture2D(map, scaledUV);
+  texSz = textureSize(map, 0).xy;
+  fTexSz = vec2(intBitsToFloat(texSz.x), intBitsToFloat(texSz.y));
 
-  vec4 col = mapCol;
+  col = mapCol;
 
-  float red = col.r, green = col.g, blue = col.b, grey, alpha;
+  red = col.r;
+  green = col.g;
+  blue = col.b;
 
   if(bokeh) {
     ivec2 texSz = textureSize(map, 0).xy;
@@ -122,19 +134,13 @@ void main() {
           green = mix(col.g, sc.g, step);
           blue = mix(col.b, sc.b, step);
         }
-
       }
     }
-
   }
   
   col.r = red;
   col.g = green;
   col.b = blue;
-
-  float br = red;
-  float bg = green;
-  float bb = blue;
 
   grey = (red + green + blue) / 3.0;
   alpha = clamp(col.a, alphaRange.x, alphaRange.y);
@@ -163,11 +169,11 @@ void main() {
           red = col.r + greyOffset + RGBOffset.r;
           green = col.g + greyOffset + RGBOffset.g;
           blue = col.b + greyOffset + RGBOffset.b;
-      }
+        }
     }
-
-  } else {
-
+  } 
+  else 
+  {
     red = clamp(red * alpha * RGBScale.r + RGBOffset.r + greyOffset, redRange.x, redRange.y);
     green = clamp(green * alpha * RGBScale.g + RGBOffset.g + greyOffset, greenRange.x, greenRange.y);
     blue = clamp(blue * alpha * RGBScale.b + RGBOffset.b + greyOffset, blueRange.x, blueRange.y);
@@ -176,103 +182,85 @@ void main() {
       col.g < greyMinCutoff || col.g > greyMaxCutoff ||
       col.b < greyMinCutoff || col.b > greyMaxCutoff
       ) { red = green = blue = 0.0; }
-  }
+    }
 
+  vec2 map2Scaled = vec2(vUv.x * map2UVScale.x + map2UVOffset.x, vUv.y * map2UVScale.y + map2UVOffset.y );
+  vec4 map2Col = texture2D(map2, map2Scaled);
+
+  float m2r = map2Col.r, m2g = map2Col.g, m2b = map2Col.b, m2a = map2Col.a;
   if(useMap2) {
-    vec2 map2Scaled = vec2(vUv.x * map2UVScale.x + map2UVOffset.x, vUv.y * map2UVScale.y + map2UVOffset.y );
-    vec4 map2Col = texture2D(map2, map2Scaled);
-    if ((map2Col.r + map2Col.g + map2Col.b) / 3.0 > map2MaxCutoff) {
-      red -= map2Col.r * map2Scale;
-      green -=  map2Col.g * map2Scale;
-      blue -= map2Col.b * map2Scale;
-      // alpha -= map2Col.r * 0.1;
-      // discard;
-    }
 
+      if (gs(map2Col) > map2MaxCutoff) {
+        red -= m2r * m2a * map2Scale;
+        green -= m2g * m2a * map2Scale;
+        blue -= m2b * m2a * map2Scale;
+      }
+
+      float fSz = map2BokehScale * 0.01;
+
+      if(map2Bokeh) {
+
+        vec3 gaussCol = vec3(0,0,0);
+
+        ivec2 texSz = textureSize(map2, 0).xy;
+        vec2 fTexSz = vec2(intBitsToFloat(texSz.x), intBitsToFloat(texSz.y));
+        vec2 coords = gl_FragCoord.xy / fTexSz;
+        float sep = map2BokehScale * 1.3;
+    
+        float minThreshold = 0.0;
+        float maxThreshold = 0.2;
+    
+        float mx = 0.0;
+
+        float fSz = map2BokehScale * 0.025;
+
+        vec3 gaussBokehCol = vec3(0,0,0);
+
+        mx = 0.0;
+
+        float count = 0.0;
+          for(float i = -fSz; i < fSz; i += 0.001) {
+            for(float j = -fSz; j < fSz; j += 0.001) {
+              vec2 vij = vec2(i,j);
+              if((distance(vij, vec2(0,0)) < fSz )) {
+
+                vec4 c1 = texture2D(map2, (map2Scaled + vij * sep));
+                vec4 c2 = texture2D(map, (scaledUV + vij * sep));
+                // vec3 c = gs(c1) < 0.1 ? c2.rgb : c1.rgb;
+                vec3 c = mix(c1.rgb, c2.rgb, 0.5);
+                float gsc = gs(c);
+                float gsm2c = gs(map2Col);
+                float gsc1 = gs(c1);
+                float gsc2 = gs(c2);
+
+
+                if((gsm2c >= 0.1 || gsc1 >= 0.1) && gsc > 0.1) {
+                  float step = smoothstep(minThreshold, maxThreshold, gsc);
+                  if(gsc >= mx) {
+                    mx = gsc;
+
+                    red = mix(col.r + (map2GreyOffset * map2Scale), (gsm2c > gsc1 ? map2Col.r : c1.r) + map2GreyOffset, map2Scale);
+                    green = mix(col.g + (map2GreyOffset * map2Scale), (gsm2c > gsc1 ? map2Col.g : c1.g) + map2GreyOffset, map2Scale);
+                    blue = mix(col.b + (map2GreyOffset * map2Scale), (gsm2c > gsc1 ? map2Col.b : c1.b) + map2GreyOffset, map2Scale);
+
+                  }
+              }
+            }
+          }
+          }     
   }
-
-  if(useMap3) {
-
-    vec2 map3Scale = (1.0 - vUv) * map3UVScale + map3UVOffset;
-
-    vec4 col = texture2D(map3, map3Scale);
-
-    float map3Grey;
-
-    switch(edge) {
-      
-      case 1:
-        
-        vec4 colRt = texture2D(map3, vec2(1.0, map3Scale.y));
-        map3Grey = (colRt.r + colRt.g + colRt.b) / 3.0;
-
-        red -= map3Grey * (1.0 - scaledUV.x + greyOffset);
-        green -= map3Grey * (1.0 - scaledUV.x + greyOffset);
-        blue -= map3Grey * (1.0 - scaledUV.x + greyOffset);
-
-        // red += map3Grey + greyOffset;
-        // green += map3Grey + greyOffset;
-        // blue += map3Grey + greyOffset;
-
-        break;
-
-      case 2:
-        vec4 colBtm = texture2D(map3, vec2(map3Scale.x, 1.0));
-
-        map3Grey = (colBtm.r + colBtm.g + colBtm.b) / 3.0;
-
-        // red += map3Grey * (1.0 - scaledUV.y + greyOffset);
-        // green += map3Grey * (1.0 - scaledUV.y + greyOffset);
-        // blue += map3Grey * (1.0 - scaledUV.y + greyOffset);
-
-        red += map3Grey * (scaledUV.y + greyOffset);
-        green += map3Grey * (scaledUV.y + greyOffset);
-        blue += map3Grey * (scaledUV.y + greyOffset);
-
-        // red += map3Grey + greyOffset;
-        // green += map3Grey + greyOffset;
-        // blue += map3Grey + greyOffset;
-
-        break;
-
-      case 3:
-        vec4 colLt = texture2D(map3, vec2(0.01, map3Scale.y));
-        map3Grey = (colLt.r + colLt.g + colLt.b) / 3.0;
-
-        red += map3Grey * (scaledUV.x + greyOffset);
-        green += map3Grey * (scaledUV.x + greyOffset);
-        blue += map3Grey * (scaledUV.x + greyOffset);
-
-        // red += map3Grey + greyOffset;
-        // green += map3Grey + greyOffset;
-        // blue += map3Grey +greyOffset;
-
-        break;
-      
-      default:
-        vec4 colTp = texture2D(map3, vec2(map3Scale.x, 0.01));
-        map3Grey = (colTp.r + colTp.g + colTp.b) / 3.0;
-
-        red += map3Grey + greyOffset;
-        green += map3Grey + greyOffset;
-        blue += map3Grey + greyOffset;
-
-    }
-  }
-
-  
 
   if(grey < greyMinCutoff || grey > greyMaxCutoff ||
     col.a < alphaMinCutoff || col.a > alphaMaxCutoff) { discard; }
 
-  
+  gl_FragColor = vec4(red, green, blue, opacity - (1.0 - alpha));
+  // gl_FragColor = vec4(m2r, m2g, m2b, 1.0);
 
-  gl_FragColor = vec4(red, green, blue, opacity);
   // gl_FragColor = vec4(br, bg, bb, opacity);
   // gl_FragColor = vec4(0.93, 0.0, 0.0, 1.0);
-
+  }
 }
-` 
+`
 
 const htmlFragmentShader = `
       
@@ -290,8 +278,6 @@ void main() {
   vec4 mapCol = texture2D(map, scaledUV);
 
   vec4 col = mapCol;
-
-
 
   float red, green, blue, grey;
   red = mapCol.r;
@@ -321,6 +307,7 @@ void main() {
     //   ) { red = green = blue = 0.0; }
   }
 
+
   if(useMap3) {
 
     vec2 map3Scale = vUv * map3UVScale + map3UVOffset;
@@ -342,6 +329,7 @@ void main() {
       blue -= map2Col.b * map2Scale;
   }
 
+
   // if(grey < greyMinCutoff || grey > greyMaxCutoff ||
   //   col.a < alphaMinCutoff || col.a > alphaMaxCutoff) { discard; }
 
@@ -350,15 +338,18 @@ void main() {
   // gl_FragColor = vec4(0.93, 0.0, 0.0, 1.0);
 
 }
-` 
+`
 
 const StdShader = ({
+  color,
   map,
   map2,
   useMap2,
+  map2Mask,
   map2UVScale,
   map2Scale,
   map2Color,
+  map2GreyOffset,
   map2UVOffset,
   map2MaxCutoff,
   useMap3,
@@ -367,24 +358,23 @@ const StdShader = ({
   map3UVOffset,
   edge,
   useBackMap,
-  backMap, 
-  UVScale, 
-  UVOffset, 
-  RGBScale, 
+  backMap,
+  UVScale,
+  UVOffset,
+  RGBScale,
   RGBOffset,
   opacity,
   alphaRange,
   alphaMinCutoff,
   alphaMaxCutoff,
-  greyOffset, 
+  greyOffset,
   greyScale,
   BnW,
   BnWThreshold,
   bokeh,
-  bokehPasses,
-  bokehSampleCount,
   bokehScale,
-  psr,
+  map2Bokeh,
+  map2BokehScale,
   greyMinCutoff,
   greyMaxCutoff,
   useColorSelect,
@@ -395,125 +385,66 @@ const StdShader = ({
   greenRange,
   blueRange,
   greyRange,
-  
- }) => {
+
+}) => {
   const mat = {
     uniforms: {
-      map: {value: map || null},
-      map2: {value: map2 || null},
-      useMap2: { value: useMap2 || false},
-      map2Scale: {value: map2Scale || 1.0},
-      map2Color: { value: map2Color || vec3(1,1,1)},
-      map2UVScale: {value: map2UVScale || vec2(1,1)},
-      map2UVOffset: {value: map2UVOffset || vec2(0,0)},
-      map2MaxCutoff: { value: map2MaxCutoff || 0.6},
-      useMap3: { value: useMap3 || false},
+      color: { value: color || vec3(-1, -1, -1) },
+      map: { value: map || null },
+      map2: { value: map2 || null },
+      useMap2: { value: useMap2 || false },
+      map2Scale: { value: map2Scale || 1.0 },
+      map2Mask: { value: map2Mask || false },
+      map2Color: { value: map2Color || vec3(1, 1, 1) },
+      map2UVScale: { value: map2UVScale || vec2(1, 1) },
+      map2UVOffset: { value: map2UVOffset || vec2(0, 0) },
+      map2GreyOffset: { value: map2GreyOffset || 0.0 },
+      map2MaxCutoff: { value: map2MaxCutoff || 0.6 },
+      useMap3: { value: useMap3 || false },
       map3: { value: map3 || null },
-      map3UVScale: { value: map3UVScale || vec2(1,1) },
-      map3UVOffset: { value: map3UVOffset || vec2(0,0) },
+      map3UVScale: { value: map3UVScale || vec2(1, 1) },
+      map3UVOffset: { value: map3UVOffset || vec2(0, 0) },
       edge: { value: edge || 0 },
-      useBackMap: {value: useBackMap || false},
-      backMap: {value: backMap || null}, 
-      UVScale: {value: UVScale || vec2(1,1)}, 
-      UVOffset: {value: UVOffset || vec2(0,0)},
-      RGBScale: {value: RGBScale || vec3(1,1,1)},
-      RGBOffset: {value: RGBOffset || vec3(0,0,0)},
-      opacity: {value: opacity || 1.0},
-      alphaRange: { value: alphaRange || vec2(0.0,1.0)},
-      alphaMinCutoff: {value: alphaMinCutoff || 0.0},
-      alphaMaxCutoff: {value: alphaMaxCutoff || 1.0},
-      greyOffset: {value: greyOffset || 0.0},
-      greyScale: {value: greyScale || false},
+      useBackMap: { value: useBackMap || false },
+      backMap: { value: backMap || null },
+      UVScale: { value: UVScale || vec2(1, 1) },
+      UVOffset: { value: UVOffset || vec2(0, 0) },
+      RGBScale: { value: RGBScale || vec3(1, 1, 1) },
+      RGBOffset: { value: RGBOffset || vec3(0, 0, 0) },
+      opacity: { value: opacity || 1.0 },
+      alphaRange: { value: alphaRange || vec2(0.0, 1.0) },
+      alphaMinCutoff: { value: alphaMinCutoff || 0.0 },
+      alphaMaxCutoff: { value: alphaMaxCutoff || 1.0 },
+      greyOffset: { value: greyOffset || 0.0 },
+      greyScale: { value: greyScale || false },
       BnW: { value: BnW },
-      BnWThreshold: { value: BnWThreshold || 0.5},
-      bokeh: {value: bokeh || false },
-      bokehPasses: { value: bokehPasses || 1},
-      bokehSampleCount: { value: bokehSampleCount || 8 },
+      BnWThreshold: { value: BnWThreshold || 0.5 },
+      bokeh: { value: bokeh || false },
       bokehScale: { value: bokehScale || 1.0 },
-      psr: { value: psr || vec2(0.01, 0.01) },
+      map2Bokeh: { value: map2Bokeh || false },
+      map2BokehScale: { value: map2BokehScale || 1.0 },
       useColorSelect: { value: useColorSelect || false },
-      selectColor: {value: selectColor || vec3(1,1,1)},
+      selectColor: { value: selectColor || vec3(1, 1, 1) },
       tolerance: { value: tolerance || 0.1 },
-      greyMinCutoff: { value: greyMinCutoff || -2},
-      greyMaxCutoff: { value: greyMaxCutoff || 2},
+      greyMinCutoff: { value: greyMinCutoff || -2 },
+      greyMaxCutoff: { value: greyMaxCutoff || 2 },
       negative: { value: negative || 0.0 },
-      redRange: { value: redRange || vec2(0,1) },
-      greenRange: { value: greenRange || vec2(0,1) },
-      blueRange: { value: blueRange || vec2(0,1) },
-      greyRange: { value: greyRange || vec2(0,1) }
+      redRange: { value: redRange || vec2(0, 1) },
+      greenRange: { value: greenRange || vec2(0, 1) },
+      blueRange: { value: blueRange || vec2(0, 1) },
+      greyRange: { value: greyRange || vec2(0, 1) }
     },
     vertexShader: stdVertexShader,
     fragmentShader: stdFragmentShader,
     transparent: true
   };
-  Object.defineProperties(mat, {
-    map: {
-      get() { return this.uniforms.map.value;},
-      set(val) { this.uniforms.map.value = val; }
-    },
-    
-    UVScale: {
-      get() { return this.uniforms.UVScale.value;},
-      set(val) { this.uniforms.UVScale.value = val; }
-    },
-    UVOffset: {
-      get() { return this.uniforms.UVOffset.value;},
-      set(val) { this.uniforms.UVOffset.value = val; }
-    },
-    RGBScale: {
-      get() { return this.uniforms.RGBScale.value;},
-      set(val) { this.uniforms.RGBScale.value = val; }
-    },
-    RGBOffset: {
-      get() { return this.uniforms.RGBOffset.value;},
-      set(val) { this.uniforms.RGBOffset.value = val; }
-    },
-    greyScale: {
-      get() { return this.uniforms.greyScale.value;},
-      set(val) { this.uniforms.greyScale.value = val; }
-    },
-    greyMinCutoff: {
-      get() { return this.uniforms.greyMinCutoff.value;},
-      set(val) { this.uniforms.greyMinCutoff.value = val; }
-    },
-    greyMaxCutoff: {
-      get() { return this.uniforms.greyMaxCutoff.value;},
-      set(val) { this.uniforms.greyMaxCutoff.value = val; }
-    },
-    negative: {
-      get() { return this.uniforms.negative.value;},
-      set(val) { this.uniforms.negative.value = val; }
-    },
-    redRange: {
-      get() { return this.uniforms.redRange.value;},
-      set(val) { this.uniforms.redRange.value = val; }
-    },
-    greenRange: {
-      get() { return this.uniforms.greenRange.value;},
-      set(val) { this.uniforms.greenRange.value = val; }
-    },
-    blueRange: {
-      get() { return this.uniforms.blueRange.value;},
-      set(val) { this.uniforms.blueRange.value = val; }
-    },
-    greyRange: {
-      get() { return this.uniforms.greyRange.value;},
-      set(val) { this.uniforms.greyRange.value = val; }
-    },
-    bokehScale: {
-      get() { return this.uniforms.bokehScale.value; },
-      set(val) { this.uniforms.bokehScale.value = val; }
-    }
 
-  });
-
-  // console.log(`useColorSelect is set to ${useColorSelect}`);
   return mat;
 
 }
 
-const SpinnerShader = ({mask=null, UVScale=vec2(1,1), UVOffset=vec2(0,0), filmGrainMap=null, filmGrainUVScale=vec2(1,1), filmGrainUVOffset=vec2(0,0), color=vec4(1,1,1,1), alpha=1.0, theta=(Math.PI / 180) * 255, thetaLength=((Math.PI / 180) * 360)}) => {
-  const shader =  {
+const SpinnerShader = ({ mask = null, UVScale = vec2(1, 1), UVOffset = vec2(0, 0), filmGrainMap = null, filmGrainUVScale = vec2(1, 1), filmGrainUVOffset = vec2(0, 0), color = vec4(1, 1, 1, 1), alpha = 1.0, theta = (Math.PI / 180) * 255, thetaLength = ((Math.PI / 180) * 360) }) => {
+  const shader = {
     uniforms: {
       mask: { value: mask },
       UVScale: { value: UVScale },
@@ -618,17 +549,17 @@ const HtmlShader = ({
   edge,
   useBackMap,
   backMap,
-  antialias, 
-  UVScale, 
-  UVOffset, 
-  RGBScale, 
+  antialias,
+  UVScale,
+  UVOffset,
+  RGBScale,
   RGBOffset,
   opacity,
   alphaRange,
   alphaMinCutoff,
   alphaMaxCutoff,
-  greyOffset, 
-  greyScale, 
+  greyOffset,
+  greyScale,
   greyMinCutoff,
   greyMaxCutoff,
   useColorSelect,
@@ -639,46 +570,46 @@ const HtmlShader = ({
   greenRange,
   blueRange,
   greyRange
- }) => {
+}) => {
   const mat = {
     uniforms: {
-      map: {value: map || null},
-      map2: {value: map2 || null},
-      useMap2: { value: useMap2 || false},
-      map2Scale: {value: map2Scale || 1.0},
-      map2Color: { value: map2Color || vec3(1,1,1)},
-      map2UVScale: {value: map2UVScale || vec2(1,1)},
-      map2UVOffset: {value: map2UVOffset || vec2(1,1)},
-      map2Offset: { value: map2Offset || vec2(0,0) },
-      map2MaxCutoff: { value: map2MaxCutoff || 0.6},
-      useMap3: { value: useMap3 || false},
+      map: { value: map || null },
+      map2: { value: map2 || null },
+      useMap2: { value: useMap2 || false },
+      map2Scale: { value: map2Scale || 1.0 },
+      map2Color: { value: map2Color || vec3(1, 1, 1) },
+      map2UVScale: { value: map2UVScale || vec2(1, 1) },
+      map2UVOffset: { value: map2UVOffset || vec2(1, 1) },
+      map2Offset: { value: map2Offset || vec2(0, 0) },
+      map2MaxCutoff: { value: map2MaxCutoff || 0.6 },
+      useMap3: { value: useMap3 || false },
       map3: { value: map3 || null },
-      map3UVScale: { value: map3UVScale || vec2(1,1) },
-      map3UVOffset: { value: map3UVOffset || vec2(0,0) },
+      map3UVScale: { value: map3UVScale || vec2(1, 1) },
+      map3UVOffset: { value: map3UVOffset || vec2(0, 0) },
       edge: { value: edge || 0 },
-      useBackMap: {value: useBackMap || false},
-      backMap: {value: backMap || null},
-      antialias: {value: antialias || false},  
-      UVScale: {value: UVScale || vec2(1,1)}, 
-      UVOffset: {value: UVOffset || vec2(0,0)},
-      RGBScale: {value: RGBScale || vec3(1,1,1)},
-      RGBOffset: {value: RGBOffset || vec3(0,0,0)},
-      opacity: {value: opacity || 1.0},
-      alphaRange: { value: alphaRange || vec2(0.0,1.0)},
-      alphaMinCutoff: {value: alphaMinCutoff || 0.0},
-      alphaMaxCutoff: {value: alphaMaxCutoff || 1.0},
-      greyOffset: {value: greyOffset || 0.0},
-      greyScale: {value: greyScale || false},
+      useBackMap: { value: useBackMap || false },
+      backMap: { value: backMap || null },
+      antialias: { value: antialias || false },
+      UVScale: { value: UVScale || vec2(1, 1) },
+      UVOffset: { value: UVOffset || vec2(0, 0) },
+      RGBScale: { value: RGBScale || vec3(1, 1, 1) },
+      RGBOffset: { value: RGBOffset || vec3(0, 0, 0) },
+      opacity: { value: opacity || 1.0 },
+      alphaRange: { value: alphaRange || vec2(0.0, 1.0) },
+      alphaMinCutoff: { value: alphaMinCutoff || 0.0 },
+      alphaMaxCutoff: { value: alphaMaxCutoff || 1.0 },
+      greyOffset: { value: greyOffset || 0.0 },
+      greyScale: { value: greyScale || false },
       useColorSelect: { value: useColorSelect || false },
       // colorsSelect: { value: colorsSelect || null },
       // colorsSelectCount: { value: colorsSelectCount || 0 },
-      greyMinCutoff: { value: greyMinCutoff || 0},
-      greyMaxCutoff: { value: greyMaxCutoff || 1},
+      greyMinCutoff: { value: greyMinCutoff || 0 },
+      greyMaxCutoff: { value: greyMaxCutoff || 1 },
       negative: { value: negative || 0.0 },
-      redRange: { value: redRange || vec2(0,1) },
-      greenRange: { value: greenRange || vec2(0,1) },
-      blueRange: { value: blueRange || vec2(0,1) },
-      greyRange: { value: greyRange || vec2(0,1) }
+      redRange: { value: redRange || vec2(0, 1) },
+      greenRange: { value: greenRange || vec2(0, 1) },
+      blueRange: { value: blueRange || vec2(0, 1) },
+      greyRange: { value: greyRange || vec2(0, 1) }
     },
     vertexShader: stdVertexShader,
     fragmentShader: htmlFragmentShader,
@@ -686,56 +617,56 @@ const HtmlShader = ({
   };
   Object.defineProperties(mat, {
     map: {
-      get() { return this.uniforms.map.value;},
+      get() { return this.uniforms.map.value; },
       set(val) { this.uniforms.map.value = val; }
     },
-    
+
     UVScale: {
-      get() { return this.uniforms.UVScale.value;},
+      get() { return this.uniforms.UVScale.value; },
       set(val) { this.uniforms.UVScale.value = val; }
     },
     UVOffset: {
-      get() { return this.uniforms.UVOffset.value;},
+      get() { return this.uniforms.UVOffset.value; },
       set(val) { this.uniforms.UVOffset.value = val; }
     },
     RGBScale: {
-      get() { return this.uniforms.RGBScale.value;},
+      get() { return this.uniforms.RGBScale.value; },
       set(val) { this.uniforms.RGBScale.value = val; }
     },
     RGBOffset: {
-      get() { return this.uniforms.RGBOffset.value;},
+      get() { return this.uniforms.RGBOffset.value; },
       set(val) { this.uniforms.RGBOffset.value = val; }
     },
     greyScale: {
-      get() { return this.uniforms.greyScale.value;},
+      get() { return this.uniforms.greyScale.value; },
       set(val) { this.uniforms.greyScale.value = val; }
     },
     greyMinCutoff: {
-      get() { return this.uniforms.greyMinCutoff.value;},
+      get() { return this.uniforms.greyMinCutoff.value; },
       set(val) { this.uniforms.greyMinCutoff.value = val; }
     },
     greyMaxCutoff: {
-      get() { return this.uniforms.greyMaxCutoff.value;},
+      get() { return this.uniforms.greyMaxCutoff.value; },
       set(val) { this.uniforms.greyMaxCutoff.value = val; }
     },
     negative: {
-      get() { return this.uniforms.negative.value;},
+      get() { return this.uniforms.negative.value; },
       set(val) { this.uniforms.negative.value = val; }
     },
     redRange: {
-      get() { return this.uniforms.redRange.value;},
+      get() { return this.uniforms.redRange.value; },
       set(val) { this.uniforms.redRange.value = val; }
     },
     greenRange: {
-      get() { return this.uniforms.greenRange.value;},
+      get() { return this.uniforms.greenRange.value; },
       set(val) { this.uniforms.greenRange.value = val; }
     },
     blueRange: {
-      get() { return this.uniforms.blueRange.value;},
+      get() { return this.uniforms.blueRange.value; },
       set(val) { this.uniforms.blueRange.value = val; }
     },
     greyRange: {
-      get() { return this.uniforms.greyRange.value;},
+      get() { return this.uniforms.greyRange.value; },
       set(val) { this.uniforms.greyRange.value = val; }
     }
 

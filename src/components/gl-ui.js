@@ -165,7 +165,8 @@ const GlUi = ({dispatch, registerEventListener}) => {
     aboutMeRef.current = node;
     // console.log(`aboutMeRef.current:`, aboutMeRef.current)
     registerEventListener('show-about-me', () => {
-      aboutMeRef.current.classList.remove('opacity-0');
+      aboutMeRef.current.classList.remove('hidden');
+      aboutMeRef.current.classList.remove('blur');
       aboutMeRef.current.classList.add('opacity-100');
     })
   }
@@ -174,6 +175,7 @@ const GlUi = ({dispatch, registerEventListener}) => {
     moveToGarden.play();
     dispatch('open-left-shoji');
   };
+
 
   useFrame((_, delta) => {
     mmRef.current && mmMixer?.update(delta);
@@ -269,10 +271,10 @@ const GlUi = ({dispatch, registerEventListener}) => {
           <Jitsuin />
         </Html>
       </mesh>
-      <mesh position={[-16.43, 1.75, -5.15]} scale={[3.25, 3.75, 1]} >
+      <mesh >
         {/* <planeGeometry args={[2,2]} /> */}
-        {/* <shaderMaterial args={[StdShader({map:glassTex, UVScale:vec2(2,2), bokeh:true, greyScale:true, opacity:0.3})]} /> */}
-        <Html className='w-[53vw] h-[100vh] text-left text-[7em] p-3 text-white [text-shadow:_2px_2px_rgb(237.15_0_0_/_100%)] bg-opacity-60  [tansition-property: opacity, --tw-backdrop-blur] duration-[1500ms] opacity-0 delay-[6s] overflow-y-auto' ref={initAboutMe} >
+        {/* <shaderMaterial args={[StdShader({map:, UVScale:vec2(2,2), bokeh:true, greyScale:true, opacity:0.3})]} /> */}
+        {/* <Html position={[-16.43, 1.75, -5.15]} scale={[3.25, 3.75, 1]} className='w-[53vw] h-[100vh] text-left text-[7em] p-3 text-white [text-shadow:_2px_2px_rgb(237.15_0_0_/_100%)] bg-opacity-60  [tansition-property: visibility, --tw-backdrop-blur] duration-[1500ms] blur delay-[5s] overflow-y-auto' ref={initAboutMe} transform occlude >
         <div className='[writing-mode:vertical-rl] m-auto font-[kouzan-brush]' >
         <p className='p-4' >
           この道や
@@ -282,31 +284,7 @@ const GlUi = ({dispatch, registerEventListener}) => {
           &nbsp;&nbsp;&nbsp;秋の暮
         </p>
         </div>
-          {/* <p className='pb-4' >
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia,
-molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum
-numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium
-optio, eaque rerum! Provident similique accusantium nemo autem.</p>  */}
-{/* <p className='pb-4 font-[cabin]'>Veritatis obcaecati tenetur iure eius earum ut molestias architecto voluptate aliquam
-nihil, eveniet aliquid culpa officia aut! Impedit sit sunt quaerat, odit,
-tenetur error, harum nesciunt ipsum debitis quas aliquid. </p>
-<p className='pb-4'>Reprehenderit,quia. Quo neque error repudiandae fuga? Ipsa laudantium molestias eos 
-sapiente officiis modi at sunt excepturi expedita sint? Sed quibusdam
-recusandae alias error harum maxime adipisci amet laborum. Perspiciatis 
-minima nesciunt dolorem! </p>
-<p className='pb-4'>Officiis iure rerum voluptates a cumque velit 
-quibusdam sed amet tempora. Sit laborum ab, eius fugit doloribus tenetur 
-fugiat, temporibus enim commodi iusto libero magni deleniti quod quam 
-consequuntur! Commodi minima excepturi repudiandae velit hic maxime
-doloremque. </p>
-<p className='pb-4'>Quaerat provident commodi consectetur veniam similique ad 
-earum omnis ipsum saepe, voluptas, hic voluptates pariatur est explicabo 
-fugiat, dolorum eligendi quam cupiditate excepturi mollitia maiores labore 
-suscipit quas? Nulla, placeat.</p> 
-<p className='pb-4'> Voluptatem quaerat non architecto ab laudantium modi minima sunt esse temporibus sint culpa, recusandae aliquam numquam 
-totam ratione voluptas quod exercitationem fuga. Possimus quis earum veniam 
-quasi aliquam eligendi, placeat qui corporis!</p> */}
-        </Html>
+        </Html> */}
       </mesh>
     </group>
   );

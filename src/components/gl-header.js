@@ -25,6 +25,7 @@ const screenToWorld = (sX, sY) => {
 }
 
 
+
 const GLHeader = () => {
   const { gl, camera, scene } = useThree();
   // console.log(`camera:`, camera);
@@ -258,7 +259,7 @@ const GLHeader = () => {
         oY: { value: 0.0 }
 
       },
-      vertexShader: `
+  vertexShader: `
   
     varying vec2 vUv;
     varying vec4 pos;
@@ -272,7 +273,7 @@ const GLHeader = () => {
   
   }`,
 
-      fragmentShader: `
+  fragmentShader: `
     
     uniform sampler2D bgTex;
     uniform sampler2D map;
@@ -323,7 +324,7 @@ const GLHeader = () => {
     // + 0.0 * (0.5 - sqrt(exp2(0.5 - bgCol.b)))
       red = 1.0 - bgCol.r + 0.0 * (bgCol.r > 0.5 ? -0.1 : 0.2) + redOffset ;          // + 0.5 == sakura
       green = 1.0 - bgCol.g + 0.0 * (bgCol.g > 0.5 ? -0.1 : 0.2)  - redOffset;        // + 0.2 == matcha    r + g = orange
-      blue = 1.0 -  bgCol.b + 0.0 * (bgCol.b > 0.5 ? -0.1 : 0.2) - redOffset;
+      blue = 1.0 -  bgCol.b  0.0 * (bgCol.b > 0.5 ? -0.1 : 0.2) - redOffset;
       
       redC = 1.0 - bgCol.r;
       greenC = 1.0 - bgCol.g;
@@ -358,11 +359,12 @@ const GLHeader = () => {
 
       gl_FragColor = vec4(red, green, blue, alpha);
       // gl_FragColor = vec4(0.933, 0.0, 0.0, neg);
-  
     }`
-
-    }
   }
+  
+
+}
+    
 
   const SVGData = useLoader(SVGLoader, SVG);
   //  console.log(`SVGData: `, SVGData);
@@ -398,7 +400,7 @@ const GLHeader = () => {
   // return tex;
   // }, [size.x]);
 
-  console.log(`bgFrameBufferTex:`, bgFramebufferTex);
+  // console.log(`bgFrameBufferTex:`, bgFramebufferTex);
   // let textGeometry = new THREE.ExtrudeGeometry(shapes,
   //   {
   //     curveSegments:20,
@@ -463,15 +465,16 @@ const GLHeader = () => {
     return posVec;
 
   }
+
   const setupBg = (node) => {
     if (!node) return;
     bgRef.current = node;
 
     bgRef.current.geometry.computeBoundingBox();
-    console.log(`bgRef.current:`, bgRef.current);
+    // console.log(`bgRef.current:`, bgRef.current);
     let bgSz = vec3(0, 0, 0);
     bgRef.current.geometry.boundingBox.getSize(bgSz);
-    console.log(`bgSz:`, bgSz);
+    // console.log(`bgSz:`, bgSz);
 
     const nodeRef = bgRef.current;
 
@@ -517,7 +520,7 @@ const GLHeader = () => {
 
   }
 
-
+    
 
   const bgBeforeRenderHandler = (renderer, scene, camera, geometry, material, group) => {
     //   if(!material || !material.isShaderMaterial) return;
@@ -560,11 +563,11 @@ const GLHeader = () => {
       camera.updateMatrixWorld();
       camera.updateProjectionMatrix();
       gl.getSize(size);
-      console.log(`size:`, size);
+      // console.log(`size:`, size);
       nodeRef.geometry.computeBoundingBox();
-      console.log(`bgFramebufferTex.image:`, bgFramebufferTex.image)
+      // console.log(`bgFramebufferTex.image:`, bgFramebufferTex.image)
       nodeRef.geometry.boundingBox.getSize(textGeoSz);
-      console.log(`textGeoSz`, textGeoSz);
+      // console.log(`textGeoSz`, textGeoSz);
       for (let i = 0; i < uvArray.length; i += 2) {
         // console.log(`uv: x:${uvArray[i]}, y: ${uvArray[i + 1]}`);
         const coords = getScreenCoords(vec3(uvArray[i], uvArray[i + 1], 0), nodeRef);
@@ -575,32 +578,32 @@ const GLHeader = () => {
 
       // console.log(`normalArray:`, normalArray);
 
-      console.log(`bgRef.current.position.applyMatrix4(bgRef.current.matrixWorld): `, bgRef.current.position.clone().applyMatrix4(bgRef.current.matrixWorld))
+      // console.log(`bgRef.current.position.applyMatrix4(bgRef.current.matrixWorld): `, bgRef.current.position.clone().applyMatrix4(bgRef.current.matrixWorld))
       bgRef.current.geometry.computeBoundingBox();
       const bgBBSz = vec3(0, 0, 0);
       bgRef.current.geometry.boundingBox.getSize(bgBBSz);
       bgBBSz.applyMatrix4(bgRef.current.matrixWorld);
-      console.log(`bgBBSz:`, bgBBSz);
-      console.log(`textGeoProjSz.applyMatrix4(nodeRef.matrixWorld):`, textGeoSz.clone().applyMatrix4(nodeRef.matrixWorld));
-      console.log(`textGeoSz.applyMatrix4(nodeRef.matrixWorld).project(camera):`, textGeoSz.clone().applyMatrix4(nodeRef.matrixWorld).project(camera));
+      // console.log(`bgBBSz:`, bgBBSz);
+      // console.log(`textGeoProjSz.applyMatrix4(nodeRef.matrixWorld):`, textGeoSz.clone().applyMatrix4(nodeRef.matrixWorld));
+      // console.log(`textGeoSz.applyMatrix4(nodeRef.matrixWorld).project(camera):`, textGeoSz.clone().applyMatrix4(nodeRef.matrixWorld).project(camera));
       // textGeoSz.applyMatrix4(nodeRef.matrixWorld).project(camera);
       // console.log(`textGeoSz.x * size.x: ${textGeoSz.x * size.x}`);
       // console.log(`textGeoSz.y * size.y: ${textGeoSz.y * size.y}`);
-      console.log(`textGeoScreenSz:`, textGeoSz.clone().applyMatrix4(nodeRef.matrixWorld).project(camera));
+      // console.log(`textGeoScreenSz:`, textGeoSz.clone().applyMatrix4(nodeRef.matrixWorld).project(camera));
 
       textGeoScreenSz = getScreenCoords(textGeoSz, nodeRef);
-      console.log(`textGeoScreenSz`, textGeoScreenSz);
+      // console.log(`textGeoScreenSz`, textGeoScreenSz);
       textWorldSz = textGeoSz.clone().applyMatrix4(nodeRef.matrixWorld);
-      console.log(`textWorldSz:`, textWorldSz);
+      // console.log(`textWorldSz:`, textWorldSz);
       canvasWorldSz = vec3(size.x, size.y, 0).unproject(camera);
-      console.log(`canvasWorldSz:`, canvasWorldSz);
+      // console.log(`canvasWorldSz:`, canvasWorldSz);
 
-      console.log(`textWorldSz / canvasWorldSz:`, textWorldSz.divide(canvasWorldSz));
-      console.log(`textWorldSz.y / (canvasWorldSz.y * headerHeightScale):`, textWorldSz.y / (canvasWorldSz.y * headerHeightScale));
+      // console.log(`textWorldSz / canvasWorldSz:`, textWorldSz.divide(canvasWorldSz));
+      // console.log(`textWorldSz.y / (canvasWorldSz.y * headerHeightScale):`, textWorldSz.y / (canvasWorldSz.y * headerHeightScale));
 
       diff.setX(textWorldSz.x / canvasWorldSz.x);
       diff.setY(textWorldSz.y / (canvasWorldSz.x * headerHeightScale));
-      console.log(`diff:`, diff);
+      // console.log(`diff:`, diff);
 
       const txtPos = getScreenCoords(nodeRef.position, nodeRef);
       // console.log(`nodeRef.position:`, txtPos);
@@ -649,8 +652,8 @@ const GLHeader = () => {
 
       // console.log(`txtRef.current:`, txtRef.current);
     }
+  
   }
-
   const txtBeforeRender = (renderer, scene, camera, geometry, material, group) => {
     if (!material.isShaderMaterial) return;
 
@@ -726,7 +729,6 @@ const GLHeader = () => {
       textPanAction = textAnimMixer.clipAction(textAnimClip);
       // textPanAction.play();
     }
-
   };
 
   const bgAfterRender = (renderer, scene, camera, geometry, material, group) => {
@@ -754,7 +756,7 @@ const GLHeader = () => {
     material.uniforms.uvScale.value = UVScale;
     material.uniformsNeedUpdate = true;
   }
-
+    
   useFrame((state, delta) => {
     bgAnimMixer?.update(delta);
     textAnimMixer?.update(delta);
@@ -812,6 +814,10 @@ const GLHeader = () => {
       {/* </mesh> */}
     </>
   );
-}
+    };
+  
+  
+
+    
 
 export default GLHeader;

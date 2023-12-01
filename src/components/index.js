@@ -7,7 +7,7 @@ import Seo from './seo';
 import Layout from './layout';
 import AdminLayout from './admin-layout';
 import Deiru from './deiru';
-import Char from './char';
+import Char from './text-tex';
 import CharacterString from './character-string';
 import Container from './container';
 // import DaleTristanHutchinson from './dale-tristan-hutchinson';
@@ -21,6 +21,8 @@ import Enso from './enso';
 import MainMenu from './main-menu';
 import GlUi from './gl-ui';
 import Jitsuin from './jitsuin';
+import TextTex from './text-tex';
+
 
 
 export {
@@ -45,5 +47,6 @@ export {
   Enso,
   MainMenu,
   GlUi,
-  Jitsuin
+  Jitsuin,
+  TextTex
 };

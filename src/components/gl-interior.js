@@ -1,7 +1,7 @@
-import { useMemo, useRef, forwardRef, useCallback, useEffect, EventDispatcher } from 'react';
+import { useMemo, useRef, forwardRef, useCallback, useEffect, useState, Suspense } from 'react';
 import * as React from 'react';
-import { useThree, useLoader, useFrame } from '@react-three/fiber';
-import { useVideoTexture } from '@react-three/drei';
+import { useThree, useLoader, useFrame, Canvas, createPortal } from '@react-three/fiber';
+import { useVideoTexture, useFont, Html, useFBO } from '@react-three/drei';
 import whiteWall from '../assets/white-wall.png';
 import tatami from '../assets/TexturesCom_Wicker0046_12_seamless_S.jpg';
 import tatamiTrim from '../assets/TexturesCom_Wicker0046_15_S.jpg';
@@ -10,8 +10,7 @@ import * as THREE from 'three';
 import { MathUtils } from 'three';
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader';
 import { StdShader } from './shaders/shader';
-import Dispatcher from '../dispatcher';
-// import { BroadcastChannel } from 'node:worker_threads';
+import kouzan from '../assets/fonts/KouzanBrushFontSousyo_Regular copy.json';
 import glass from '../assets/Texturelabs_Glass_154L.jpg';
 import paper from '../assets/TCom_PaperDecorative0032_1_seamless_M.jpeg';
 import plaster from '../assets/TCom_PlasterBare0143_1_seamless_M.jpeg'
@@ -21,10 +20,24 @@ import gotama from '../assets/Gotama-edited.png';
 import woodPanel1 from '../assets/TCom_WoodFine0082_3_seamless_M.jpeg';
 import planks from '../assets/TCom_Wood_PlanksTemple2_2x2_512_albedo.png';
 import autumnLeaves from '../assets/pexels_videos_1777892 (720p).mp4'
+import { extend } from '@react-three/fiber';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { TextTex } from '.';
+import lt from '../assets/fonts/Lemon Tuesday_Regular.json';
+import rhb from '../assets/fonts/Roundhand_Bold.json';
+import nanum from '../assets/fonts/Nanum Pen_Regular.json'
 
+
+import estonia from '../assets/fonts/Estonia_Regular.json';
+
+extend({ TextGeometry });
+extend({ TextTex });
+const ANIMATIONS = true;
 
 const vec2 = (n1 = null, n2 = null) => new THREE.Vector2(n1, n2);
 const vec3 = (n1 = null, n2 = null, n3 = null) => new THREE.Vector3(n1, n2, n3);
+const vec4 = (n1, n2, n3, n4) => new THREE.Vector4(n1, n2, n3, n4);
 
 const ZERO_VEC_2 = vec2(0, 0);
 const ONE_VEC_3 = vec3(1, 1, 1);
@@ -93,7 +106,7 @@ const Shader = ({
       greyRange: { value: greyRange || vec2(0, 1) }
     },
     vertexShader: vertexPass,
-    fragmentShader: `
+    fragmentShader: /* glsl */`
 
       uniform sampler2D map, map2, backMap;
       uniform vec3 RGBScale, RGBOffset;
@@ -160,66 +173,10 @@ const Shader = ({
       `,
     transparent: true
   };
-  Object.defineProperties(mat, {
-    map: {
-      get() { return this.uniforms.map.value; },
-      set(val) { this.uniforms.map.value = val; }
-    },
 
-    UVScale: {
-      get() { return this.uniforms.UVScale.value; },
-      set(val) { this.uniforms.UVScale.value = val; }
-    },
-    UVOffset: {
-      get() { return this.uniforms.UVOffset.value; },
-      set(val) { this.uniforms.UVOffset.value = val; }
-    },
-    RGBScale: {
-      get() { return this.uniforms.RGBScale.value; },
-      set(val) { this.uniforms.RGBScale.value = val; }
-    },
-    RGBOffset: {
-      get() { return this.uniforms.RGBOffset.value; },
-      set(val) { this.uniforms.RGBOffset.value = val; }
-    },
-    greyScale: {
-      get() { return this.uniforms.greyScale.value; },
-      set(val) { this.uniforms.greyScale.value = val; }
-    },
-    greyMinCutoff: {
-      get() { return this.uniforms.greyMinCutoff.value; },
-      set(val) { this.uniforms.greyMinCutoff.value = val; }
-    },
-    greyMaxCutoff: {
-      get() { return this.uniforms.greyMaxCutoff.value; },
-      set(val) { this.uniforms.greyMaxCutoff.value = val; }
-    },
-    negative: {
-      get() { return this.uniforms.negative.value; },
-      set(val) { this.uniforms.negative.value = val; }
-    },
-    redRange: {
-      get() { return this.uniforms.redRange.value; },
-      set(val) { this.uniforms.redRange.value = val; }
-    },
-    greenRange: {
-      get() { return this.uniforms.greenRange.value; },
-      set(val) { this.uniforms.greenRange.value = val; }
-    },
-    blueRange: {
-      get() { return this.uniforms.blueRange.value; },
-      set(val) { this.uniforms.blueRange.value = val; }
-    },
-    greyRange: {
-      get() { return this.uniforms.greyRange.value; },
-      set(val) { this.uniforms.greyRange.value = val; }
-    }
-
-  });
   return mat;
 
 }
-
 
 const woodMaterial = (color = new THREE.Vector4(1.0, 1.0, 1.0, 1.0)) => {
   return {
@@ -548,43 +505,6 @@ const Shoji = forwardRef(({ scale = vec3(1, 1, 1), position, greyOffset = 0.0, r
   );
 });
 
-// const Shoji = ({scale=Vec3(0,0,0), position, greyOffset=0.0, rotation=new THREE.Euler(0,0,0)}) => {
-
-//   const Lattice = ({position}) => {
-//     const hLatticeArray = Array(13).fill(null).map((_, index) => {
-//       return (
-//         <Strut key={index} position={Vec3(position.x, position.y - 0.35 - (index + 1) * 0.4, position.z)} scale={Vec3(0.001875, 0.000075, 1)}  />
-//       );
-//     })
-
-//     const vLatticeArray = Array(4).fill(null).map((_, index) => {
-//       return (
-//         <Strut key={index} position={Vec3(position.x - 1.5 + (index + 1) * 0.6, position.y - 3.125, position.z)} scale={Vec3(0.003475, 0.00015, 1)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
-//       );
-//     })
-
-//     // position={Vec3(-5.75, 2, -5.5)}
-
-//     return (
-//       <>
-//       {hLatticeArray}
-//       {vLatticeArray}
-//       <Strut position={Vec3(position.x, position.y - 3.125, position.z)} scale={Vec3(0.0035, 0.0005, 1)} rotation={new THREE.Euler(0,0,-(Math.PI / 2))} />
-//       <Strut position={Vec3(position.x, position.y - 0.375, position.z - 0)} scale={Vec3(0.0019, 0.000325, 1)} />
-//       <Strut position={Vec3(position.x, position.y - 5.9, position.z - 0)} scale={Vec3(0.0019, 0.000325, 1)} />
-//       {/* <Brace scale={Vec3(0.0065,0.00075,1)} position={Vec3(-9,-3.95,-5.625)} rotation={new THREE.Euler(-(Math.PI / 2), 0, 0)} greyScale={true} greyOffset={-0.075} /> */}
-//       </>
-//     )
-//   }
-
-//   return (
-//     <>
-//       <Lattice position={Vec3(position.x, position.y, position.z)} />
-//       <WallPaper map={plaster} scale={Vec3(0.00095, 0.00178, 1)} position={Vec3(position.x, position.y, position.z - 0.125)} />
-//     </>
-//   );
-// }
-
 const Fusuma = forwardRef(({ map = null, position = vec3(0, 0, 0), scale = vec3(1, 1, 1), useMap2 = false, map2 = null }, ref) => {
   const { gl } = useThree();
   const dpr = gl.getPixelRatio();
@@ -645,29 +565,7 @@ const WallPaper = ({ map = null, position = vec3(0, 0, 0), scale = vec3(1, 1, 1)
   );
 };
 
-// const WallPaper = ({map=null, position, scale, renderOrder, UVScale=Vec2(1,1), useMap2=false, map2=null, map2UVScale=Vec2(1,1), map2Scale=0.0}) => {
-//   const { gl } = useThree();
-//   const dpr = gl.getPixelRatio();
 
-//   const tex = useLoader(THREE.TextureLoader, map || whiteWall);
-//   tex.wrapS = THREE.RepeatWrapping;
-//   tex.wrapT = THREE.RepeatWrapping;
-//   tex.format = THREE.RGBAFormat;
-//   const texSize = Vec2(tex.image.width, tex.image.height);
-
-//   const texHalfWidth = tex.image.width * scale.x * 0.5;
-//   const texHalfHeight = tex.image.height * scale.y * 0.5;
-
-//   const map2Tex = useLoader(THREE.TextureLoader, map2 || glass);
-//   map2Tex.wrapS = map2Tex.wrapT = THREE.MirroredRepeatWrapping;
-
-//   return (
-//     <mesh scale={[scale.x,scale.y,scale.z]} position={[position.x - texHalfWidth, position.y + texHalfHeight, position.z]} renderOrder={renderOrder} >
-//       <planeGeometry args={[texSize.x * dpr, texSize.y * dpr]} />
-//       <shaderMaterial args={[Shader({map:tex, UVScale:Vec2(UVScale.x, UVScale.y / (scale.x / scale.y)), UVOffset:Vec2(0.2,0.01), RGBOffset:Vec3(0.3, 0.3, 0.3), greyScale: false, alphaRange:Vec2(0.1, 0.35), alphaMinCutoff:0.0, alphaMaxCutoff:1, greyOffset:-0.1, useMap2, map2: map2Tex, map2UVScale, map2Scale})]} wireframe={false} />
-//     </mesh>
-//   );
-// }
 
 const Backdrop = ({ map = null, position = vec3(0, 0, 0), scale = vec3(1, 1, 1), rotation = new THREE.Euler(0, 0, 0), UVScale = vec2(1, 1), UVOffset = vec2(0, 0), RGBOffset = vec3(0, 0, 0), greyScale = false, greyOffset = 0, greyRange = vec2(0, 1.0), greyMinCutoff = 0.0, greyMaxCutoff = 1.0, alphaMinCutoff = 0.0, alphaMaxCutoff = 1.0, useBackMap = false, backMap = null, antialias = false, alphaRange = vec2(0, 1), redRange = vec2(0, 1), greenRange = vec2(0, 1), blueRange = vec2(0, 1), renderOrder = 0 }) => {
   const { gl } = useThree();
@@ -691,49 +589,61 @@ const Backdrop = ({ map = null, position = vec3(0, 0, 0), scale = vec3(1, 1, 1),
 };
 
 const GLInterior = ({ registerEventListener, dispatch }) => {
+  console.log(`const { gl, scene, camera } = useThree();`)
+  const { gl, scene, camera } = useThree();
+  const sz = vec2();
+  gl.getSize(sz);
+  console.log(`gl:`, gl);
+  const dpr = gl.getPixelRatio();
 
   const akiTex = useVideoTexture(autumnLeaves);
-  akiTex.format = THREE.RGBAFormat;
+  const paperTex = useLoader(THREE.TextureLoader, paper);
+
   akiTex.wrapS = akiTex.wrapT = THREE.RepeatWrapping;
   // console.log(`akiTex:`, akiTex);
   const glassTex = useLoader(THREE.TextureLoader, glass);
   glassTex.wrapS = glassTex.wrapT = THREE.RepeatWrapping;
+  console.log(`glassTex`, glassTex);
+  const plasterTex = useLoader(THREE.TextureLoader, plaster);
+  plasterTex.wrapS = plasterTex.wrapT = THREE.RepeatWrapping;
 
-  const { scene, camera } = useThree();
+  const lemonTuesday = new FontLoader().parse(lt);
+  const roundHandBold = new FontLoader().parse(rhb);
+  const nanumRegular = new FontLoader().parse(nanum);
 
-  // console.log(`scene:`, JSON.stringify(scene.toJSON()));
-  // const bc = new BroadcastChannel('loudspeaker');
-  // bc.postMessage('this is a test from gl-interior');
 
-  // const messenger = new SharedWorker(new URL('./msg-channel.js', import.meta.url));
 
-  // messenger.port.onmessage = (e) => {
-  //   console.log(`message received: ${e.data}`);
-  // }
+  console.log(`const kouzanFont = useLoader(FontLoader, kouzan);`);
+
+  // const kouzanFont = useLoader(FontLoader,kouzan);
+
+  // const kouzanFont = useFont(kouzan);
+
+
 
   // console.log(`camera:`, camera);
   const leftShojiRef = useRef(null);
 
   let camAnimMixer, camPanXTrack, camPanYTrack, camPanZTrack, camRotXTrack, camAnimClip, camAnimAction;
 
-    // camera.position.x = -8;
-    // camera.position.y = 3.1;
-    // camera.position.z = 1.2;
-    // camera.rotation.y = 0; 
-  
-    // camera.position.z = 5;
+  // camera.position.x = -8;
+  // camera.position.y = 3.1;
+  // camera.position.z = 1.2;
+  // camera.rotation.y = 0; 
 
-    camera.rotation.x = 0;
-    camera.rotation.y = 0;
-    camera.rotation.z = 0;
+  // camera.position.z = 5;
 
-    // camera.position.x = -8;
-    // camera.position.y = 3.1;
-    // camera.position.z = 1.2;
-    // camera.rotation.y = 0;
-    // camera.rotation.x = (Math.PI / 180 * 10);
-  
-    useEffect(() => {
+  // camera.rotation.x = -13;
+  // camera.rotation.y = -3.4;
+  // camera.rotation.z = 0;
+
+  camera.position.x = -8;
+  camera.position.y = 3.1;
+  camera.position.z = 1.2;
+  // camera.rotation.y = 0;
+  // camera.rotation.x = (Math.PI / 180 * 10);
+
+  useEffect(() => {
 
     camera.position.x = 2;
     camera.position.y = -1.05;
@@ -747,15 +657,13 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
     camPanZTrack = new THREE.NumberKeyframeTrack('.position[z]', [0, 6.5, 9, 11, 14], [1.2, 1.2, 4.5, 4.5, 2], THREE.InterpolateLinear);
     camRotXTrack = new THREE.NumberKeyframeTrack('.rotation[x]', [0, 6.5, 9, 12, 14, 16], [0, 0, (Math.PI / 180 * 10), (Math.PI / 180 * 10), -(Math.PI / 180 * 4), 0], THREE.InterpolateSmooth);
 
-    // camZoomTrack = new THREE.NumberKeyframeTrack('.zoom',[0,10,11], [64,64,1], THREE.InterpolateSmooth);
     camAnimClip = new THREE.AnimationClip('camAm', 16, [camPanXTrack, camPanYTrack, camPanZTrack, camRotXTrack]);
     camAnimMixer = new THREE.AnimationMixer(camera);
     camAnimAction = camAnimMixer.clipAction(camAnimClip);
     camAnimAction.setLoop(THREE.LoopOnce);
-    // camAnimAction.play();
+    ANIMATIONS && camAnimAction.play();
 
   }, []);
-
 
   const fusuRef = useRef(null);
   let fusuAnimMixer, fusuXTrack, fusuAnimClip, fusuAction;
@@ -769,12 +677,14 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
     fusuAnimClip = new THREE.AnimationClip('', 16, [fusuXTrack]);
     fusuAction = fusuAnimMixer.clipAction(fusuAnimClip);
     fusuAction.setLoop(THREE.LoopOnce);
-    // fusuAction.play();
+    ANIMATIONS && fusuAction.play();
   }, []);
 
   let leftShojiMixer, leftShojiXCloseTrack, leftShojiXOpenTrack, leftShojiCloseClip, leftShojiOpenClip, openLeftShoji, closeLeftShoji;
   leftShojiXOpenTrack = new THREE.NumberKeyframeTrack('.position[x]', [0, 4, 5], [-6.4, -6.4, -10.1]);
   leftShojiOpenClip = new THREE.AnimationClip('', 5, [leftShojiXOpenTrack]);
+
+  console.log(`const initLeftShoji = useCallback(node => {`)
 
   const initLeftShoji = useCallback(node => {
 
@@ -785,131 +695,227 @@ const GLInterior = ({ registerEventListener, dispatch }) => {
     openLeftShoji = leftShojiMixer.clipAction(leftShojiOpenClip);
     openLeftShoji.clampWhenFinished = true;
     openLeftShoji.setLoop(THREE.LoopOnce);
-    // openLeftShoji.play();
     registerEventListener('open-left-shoji', () => {
       leftShojiRef.current.position.x = -10.1;
-      openLeftShoji.play();
-      akiBoke.play();
+      ANIMATIONS && openLeftShoji.play();
+      ANIMATIONS && akiBoke.play();
+      
+      // ANIMATIONS && unblurHaiku.play();
       dispatch('show-about-me');
     })
   }, []);
 
-  const akiRef = useRef(null);
-  let akiMixer, akiBokeTrack, akiBrightnesstrack, akiClip, akiBoke;
-  akiBokeTrack = new THREE.NumberKeyframeTrack('.bokehScale', [0,5,6], [-0.1,-0.1,1.0]);
-  akiBrightnesstrack = new THREE.NumberKeyframeTrack('.greyOffset', [0,5,6], [0,0,-0.2])
-  akiClip = new THREE.AnimationClip('',6,[akiBokeTrack, akiBrightnesstrack]);
 
+  const offset = vec2(0, 0);
+ 
+
+  const akiRef = useRef(null);
+  let akiMixer, akiBokeTrack, akiTextBoke, akiBrightnesstrack, map2ScaleTrack, akiClip, akiBoke, UVScaleTrack, map2UVScaleTrack, map2UVOffsetTrack;
+  akiBokeTrack = new THREE.NumberKeyframeTrack('.bokehScale', [0, 5, 7], [-0.1, -0.1, 1.5]);
+  akiTextBoke = new THREE.NumberKeyframeTrack('.map2BokehScale', [0, 5, 7], [1.0, 1.0, 0.03]);
+  akiBrightnesstrack = new THREE.NumberKeyframeTrack('.greyOffset', [0, 5, 7], [0, 0, -0.2]);
+  map2ScaleTrack = new THREE.NumberKeyframeTrack('.map2Scale', [0, 5, 7], [0.0, 0.0, 1.0]);
+  UVScaleTrack = new THREE.VectorKeyframeTrack('.UVScale', [0,5,7], [0.3, 0.3, 0.3, 0.3, 0.8,0.8]);
+  map2UVScaleTrack = new THREE.VectorKeyframeTrack('.map2UVScale', [0,5,7], [1.1,1.1, 1.1, 1.1, 0.85,1.0]);
+  map2UVOffsetTrack = new THREE.VectorKeyframeTrack('.map2UVOffset', [0,5,7], [0.0,-0.1, 0.0, -0.1, 0.1,0.0]);
+
+  akiClip = new THREE.AnimationClip('', 7, [akiBokeTrack, akiTextBoke, UVScaleTrack, map2UVScaleTrack, map2UVOffsetTrack, map2ScaleTrack]);
 
   const initAki = node => {
-    if(!node) return;
+    if (!node) return;
     akiRef.current = node;
     const nodeRef = akiRef.current;
-    if(!Object.hasOwn(nodeRef, 'bokehScale')) {
+    if (!Object.hasOwn(nodeRef, 'bokehScale')) {
       Object.defineProperties(nodeRef, {
+        UVScale: {
+          get() { return this.material.uniforms.UVScale.value; },
+          set(val) { this.material.uniforms.UVScale.value = val; }
+        },
         bokehScale: {
           get() { return this.material.uniforms.bokehScale.value; },
           set(val) { this.material.uniforms.bokehScale.value = val; }
         },
-        greyOffset: {
+        map2Scale: {
           get() { 
+            return this.material.uniforms.map2Scale.value;
+          },
+          set(val){
+            this.material.uniforms.map2Scale.value = val;
+          }
+        },
+        map2UVScale: {
+          get() { 
+            return this.material.uniforms.map2UVScale.value;
+          },
+          set(val){
+            this.material.uniforms.map2UVScale.value = val;
+          }
+        },
+        map2UVOffset: {
+          get() { 
+            return this.material.uniforms.map2UVOffset.value;
+          },
+          set(val){
+            this.material.uniforms.map2UVOffset.value = val;
+          }
+        },
+        map2BokehScale: {
+          get() { return this.material.uniforms.map2BokehScale.value; },
+          set(val) { this.material.uniforms.map2BokehScale.value = val; }
+        },
+        greyOffset: {
+          get() {
             return this.material.uniforms.greyOffset.value;
           },
           set(val) {
-            this.material.uniforms.greyOffset.value = val; 
+            this.material.uniforms.greyOffset.value = val;
           }
         }
       })
     }
+
     akiMixer = new THREE.AnimationMixer(akiRef.current);
     akiBoke = akiMixer.clipAction(akiClip);
     akiBoke.setLoop(THREE.LoopOnce);
     akiBoke.clampWhenFinished = true;
+
   }
+
+  const AkiScene = ({ position, scale }) => {
+    const cam = useRef(null);
+    const [sc, rt] = useMemo(() => {
+      const sc = new THREE.Scene();
+      const rt = new THREE.WebGLRenderTarget(2048, 2048);
+
+      return [sc, rt];
+    }, []);
+
+    const init = node => {
+      if (!node) return;
+      cam.current = node;
+      gl.setRenderTarget(rt);
+      gl.render(sc, cam.current);
+      gl.setRenderTarget(null);
+    }
+
+  const kouzanFont = new FontLoader().parse(kouzan);
+
+    return (
+      <>
+        
+        {createPortal(
+          <>
+          <perspectiveCamera position={vec3(0, 0, 5)} ref={init} />
+            <TextTex font={kouzanFont} position={vec3(1.5, 1.2, .1)} scale={vec3(0.3, 0.3, 0.1)}>こ</TextTex>
+            <TextTex font={kouzanFont} position={vec3(1.5, 0.8, .1)} scale={vec3(0.3, 0.3, 0.1)}>の</TextTex>
+            <TextTex font={kouzanFont} position={vec3(1.5, 0.4, .1)} scale={vec3(0.3, 0.3, 0.1)}>道</TextTex>
+            <TextTex font={kouzanFont} position={vec3(1.5, 0.0, .1)} scale={vec3(0.3, 0.3, 0.1)}>や</TextTex>
+            <TextTex font={kouzanFont} position={vec3(1.1, 0.8, .1)} scale={vec3(0.3, 0.3, 0.1)}>行</TextTex>
+            <TextTex font={kouzanFont} position={vec3(1.1, 0.4, .1)} scale={vec3(0.3, 0.3, 0.1)}>く</TextTex>
+            <TextTex font={kouzanFont} position={vec3(1.1, 0.0, .1)} scale={vec3(0.3, 0.3, 0.1)}>人</TextTex>
+            <TextTex font={kouzanFont} position={vec3(1.1, -0.4, .1)} scale={vec3(0.3, 0.3, 0.1)}>な</TextTex>
+            <TextTex font={kouzanFont} position={vec3(1.1, -0.8, .1)} scale={vec3(0.3, 0.3, 0.1)}>し</TextTex>
+            <TextTex font={kouzanFont} position={vec3(1.1, -1.2, .1)} scale={vec3(0.3, 0.3, 0.1)}>に</TextTex>
+            <TextTex font={kouzanFont} position={vec3(0.7, 0.4, .1)} scale={vec3(0.3, 0.3, 0.1)}>秋</TextTex>
+            <TextTex font={kouzanFont} position={vec3(0.7, 0.0, .1)} scale={vec3(0.3, 0.3, 0.1)}>の</TextTex>
+            <TextTex font={kouzanFont} position={vec3(0.7, -0.4, .1)} scale={vec3(0.3, 0.3, 0.1)}>暮</TextTex>
+            <TextTex font={nanumRegular} position={vec3(-1.4, 0.2, .1)} scale={vec3(0.14, 0.19, 0.05)}>None is travelling</TextTex>
+            <TextTex font={nanumRegular} position={vec3(-1.4, 0.0, .1)} scale={vec3(0.14, 0.19, 0.05)}>Here along this way, but I</TextTex>
+            <TextTex font={nanumRegular} position={vec3(-1.4, -0.2, .1)} scale={vec3(0.14, 0.19, 0.05)}>This autumn evening.</TextTex>
+          </>, sc)}
+        <mesh position={[position.x, position.y, position.z]} scale={[scale.x, scale.y, scale.z]} ref={initAki} >
+          <planeGeometry args={[1, 1 / (720 /405)]} />
+          <shaderMaterial args={[StdShader({ map: akiTex, UVScale: vec2(0.8, 0.8), UVOffset: vec2(0, 0), greyScale: true, BnW: true, BnWThreshold: 0.5, bokeh: true, bokehScale: 1, useColorSelect: true, tolerance: 0.7, greyRange: vec2(0, 1), greyOffset: 0.0, redRange: vec2(0, 1), blueRange: vec2(0, 1), RGBOffset: vec3(0, 0, 0), greenRange: vec2(0, 1), selectColor: vec3(1, 0.050980392156862744, 0.043137254901960784), useMap2: true, map2Mask:true, map2: rt.texture, map2Scale: 0.0, map2UVScale: vec2(1, 1), map2MaxCutoff:0.0, map2GreyOffset:0.2, map2Bokeh:true, map2BokehScale: -1 })]} wireframe={false} />
+        </mesh>
+      </>
+    )
+  }
+
+  extend({ AkiScene });
 
   useFrame((state, delta) => {
     camAnimMixer?.update(delta);
     fusuAnimMixer?.update(delta);
     leftShojiMixer?.update(delta);
     akiMixer?.update(delta);
+    // haikuMixer?.update(delta);
+    // console.log(`haikuRef.current.bokeh: ${haikuRef.current.bokeh}`);
   });
 
   return (
-    <group >
-      <Backdrop map={planks} position={vec3(-9, 3, -7.68)} scale={vec3(.08, .015, 1)} rotation={new THREE.Euler((Math.PI / 2), 0, 0)} UVScale={vec2(16, 16)} backMap={planks} greyScale={true} greyOffset={-0.2} />
+    <>
+      <group >
+        <Backdrop map={planks} position={vec3(-9, 3, -7.68)} scale={vec3(.08, .015, 1)} rotation={new THREE.Euler((Math.PI / 2), 0, 0)} UVScale={vec2(16, 16)} backMap={planks} greyScale={true} greyOffset={-0.2} />
 
-      <Post scale={vec3(0.00582, 0.0015, 1)} position={vec3(0.0, -2.5, 0)} renderOrder={35} />
-      <WallPaper scale={vec3(0.006205, 0.0006779, 1)} position={vec3(5.2, 1.74, 0)} UVScale={vec2(1, 1)} UVOffset={vec2(0.2, 0.01)} useMap2={true} map2UVScale={vec2(2, 0.25)} map2Scale={0.05} />
-      <Brace scale={vec3(0.0066, -0.0005, 1)} position={vec3(5.5105, 1.25, 0)} renderOrder={45} />
-      <Brace scale={vec3(0.0066, -0.0005, 1)} position={vec3(5.5105, -3.3, 0)} renderOrder={45} />
-      <WallPaper map={plaster} scale={vec3(0.0032, 0.0001975, 1)} position={vec3(5.35, -3.7, 0)} UVOffset={vec2(0.2, 0.01)} />
+        <Post scale={vec3(0.00582, 0.0015, 1)} position={vec3(0.0, -2.5, 0)} renderOrder={35} />
+        <WallPaper scale={vec3(0.006205, 0.0006779, 1)} position={vec3(5.2, 1.74, 0)} UVScale={vec2(1, 1)} UVOffset={vec2(0.2, 0.01)} useMap2={true} map2UVScale={vec2(2, 0.25)} map2Scale={0.05} />
+        <Brace scale={vec3(0.0066, -0.0005, 1)} position={vec3(5.5105, 1.25, 0)} renderOrder={45} />
+        <Brace scale={vec3(0.0066, -0.0005, 1)} position={vec3(5.5105, -3.3, 0)} renderOrder={45} />
+        <WallPaper map={plaster} scale={vec3(0.0032, 0.0001975, 1)} position={vec3(5.35, -3.7, 0)} UVOffset={vec2(0.2, 0.01)} />
 
-      <Brace scale={vec3(0.0025, -0.0012, 0.0001)} position={vec3(1.725, -3.35, -6)} UVScale={vec2(0.5, 0.5)} greyOffset={-0.1} />
-      <Post scale={vec3(0.004, 0.0013, 1)} position={vec3(3.8, -0.8, -6)} greyOffset={-0.12} />
+        <Brace scale={vec3(0.0025, -0.0012, 0.0001)} position={vec3(1.725, -3.35, -6)} UVScale={vec2(0.5, 0.5)} greyOffset={-0.1} />
+        <Post scale={vec3(0.004, 0.0013, 1)} position={vec3(3.8, -0.8, -6)} greyOffset={-0.12} />
 
-      <WallPaper map={plaster} scale={vec3(0.004, 0.002975, 1)} position={vec3(0, -1.85, -13)} UVOffset={vec2(0.2, 0.01)} greyScale={true} greyOffset={-0.5} />
-      <Shoji position={vec3(1.8, 1.8, -12.875)} scale={vec3(1.2, 1, 1)} />
-      <Backdrop map={gotama} position={vec3(1.82, -2.15, -12.8)} scale={vec3(0.001155, 0.001155, 1)} UVOffset={vec2(0, 0)} greyScale={true} greyOffset={-1.9} greyMinCutoff={0.0} greyMaxCuttoff={1.0} greyRange={vec2(0.0, 1)} alphaRange={vec2(0.0, 1)} UVScale={vec2(1, 1)} alphaMinCutoff={0.4} alphaMaxCutoff={1} RGBOffset={vec3(0.0, 0.0, 0)} backMap={gotama} />
-      <Mat position={vec3(3.1, -3.175, -7)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} rightTrim={false} greyOffset={-0.3} />
-      <Mat position={vec3(3.1, -3.175, -10.1)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} rightTrim={false} greyOffset={-0.3} />
+        <WallPaper map={plaster} scale={vec3(0.004, 0.002975, 1)} position={vec3(0, -1.85, -13)} UVOffset={vec2(0.2, 0.01)} greyScale={true} greyOffset={-0.5} />
+        <Shoji position={vec3(1.8, 1.8, -12.875)} scale={vec3(1.2, 1, 1)} />
+        <Backdrop map={gotama} position={vec3(1.82, -2.15, -12.8)} scale={vec3(0.001155, 0.001155, 1)} UVOffset={vec2(0, 0)} greyScale={true} greyOffset={-1.9} greyMinCutoff={0.0} greyMaxCuttoff={1.0} greyRange={vec2(0.0, 1)} alphaRange={vec2(0.0, 1)} UVScale={vec2(1, 1)} alphaMinCutoff={0.4} alphaMaxCutoff={1} RGBOffset={vec3(0.0, 0.0, 0)} backMap={gotama} />
+        <Mat position={vec3(3.1, -3.175, -7)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} rightTrim={false} greyOffset={-0.3} />
+        <Mat position={vec3(3.1, -3.175, -10.1)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} rightTrim={false} greyOffset={-0.3} />
 
-      <Backdrop map={woodPanel1} position={vec3(6.15, -0.9, -6.25)} scale={vec3(0.0015, 0.00175, 1)} UVScale={vec2(0.875, 0.875)} backMap={woodPanel1} greyScale={true} greyOffset={-0.35} />
+        <Backdrop map={woodPanel1} position={vec3(6.15, -0.9, -6.25)} scale={vec3(0.0015, 0.00175, 1)} UVScale={vec2(0.875, 0.875)} backMap={woodPanel1} greyScale={true} greyOffset={-0.35} />
 
-      <Mat position={vec3(3.125, -3.5, -1.176)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} rightTrim={true} />
-      <Mat position={vec3(6.7876, -3.5, -1.176)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} rightTrim={true} />
-      <Mat position={vec3(10.338, -3.5, -1.176)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} rightTrim={true} />
-      <Mat position={vec3(13.8845, -3.5, -1.176)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} rightTrim={true} />
+        <Mat position={vec3(3.125, -3.5, -1.176)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} rightTrim={true} />
+        <Mat position={vec3(6.7876, -3.5, -1.176)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} rightTrim={true} />
+        <Mat position={vec3(10.338, -3.5, -1.176)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} rightTrim={true} />
+        <Mat position={vec3(13.8845, -3.5, -1.176)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} rightTrim={true} />
 
-      <Post scale={vec3(0.00275, 0.000071, 1)} position={vec3(6.825, -1.02, 0)} rotation={new THREE.Euler(0, -(Math.PI / 2), -(Math.PI / 2))} greyOffset={-0.2} renderOrder={35} />
-      <Post scale={vec3(0.00274, 0.0004, 1)} position={vec3(6.775, -1.02, 0)} rotation={new THREE.Euler(0, 0, -(Math.PI / 2))} greyOffset={0} renderOrder={35} />
-      <WallPaper map={plaster} scale={vec3(0.0021, -0.00141225, 1)} position={vec3(10.2, -1.1, -0.0001)} UVOffset={vec2(0.2, 0.01)} greyScale={true} greyOffset={-0.4} />
-      <Fusuma map={plaster} position={vec3(5.75, -1.03, -0.02)} scale={vec3(-0.001, 0.00134, 1)} ref={setupFusuma} />
-      <Fusuma map={plaster} position={vec3(5.1, -1.03, -0.04)} scale={vec3(0.001, 0.00134, 1)} />
-      <Post scale={vec3(0.0025885, 0.0004, 1)} position={vec3(6.579, -1.05, -0.14)} rotation={new THREE.Euler(0, 0, -(Math.PI / 2))} greyOffset={0} renderOrder={35} />
-      <WallPaper map={plaster} scale={vec3(0.0021, 0.00141225, 1)} position={vec3(10.2, -1.1, -0.1401)} UVOffset={vec2(0.2, 0.01)} greyScale={true} greyOffset={-0.7} />
+        <Post scale={vec3(0.00275, 0.000071, 1)} position={vec3(6.825, -1.02, 0)} rotation={new THREE.Euler(0, -(Math.PI / 2), -(Math.PI / 2))} greyOffset={-0.2} renderOrder={35} />
+        <Post scale={vec3(0.00274, 0.0004, 1)} position={vec3(6.775, -1.02, 0)} rotation={new THREE.Euler(0, 0, -(Math.PI / 2))} greyOffset={0} renderOrder={35} />
+        <WallPaper map={plaster} scale={vec3(0.0021, -0.00141225, 1)} position={vec3(10.2, -1.1, -0.0001)} UVOffset={vec2(0.2, 0.01)} greyScale={true} greyOffset={-0.4} />
+        <Fusuma map={plaster} position={vec3(5.75, -1.03, -0.02)} scale={vec3(-0.001, 0.00134, 1)} ref={setupFusuma} />
+        <Fusuma map={plaster} position={vec3(5.1, -1.03, -0.04)} scale={vec3(0.001, 0.00134, 1)} />
+        <Post scale={vec3(0.0025885, 0.0004, 1)} position={vec3(6.579, -1.05, -0.14)} rotation={new THREE.Euler(0, 0, -(Math.PI / 2))} greyOffset={0} renderOrder={35} />
+        <WallPaper map={plaster} scale={vec3(0.0021, 0.00141225, 1)} position={vec3(10.2, -1.1, -0.1401)} UVOffset={vec2(0.2, 0.01)} greyScale={true} greyOffset={-0.7} />
 
-      <Brace scale={vec3(-0.0045, 0.00025, 1)} position={vec3(3.59223, -3.3, -0.14)} rotation={new THREE.Euler(-(Math.PI / 2), 0, 0)} greyOffset={-0.1} />
+        <Brace scale={vec3(-0.0045, 0.00025, 1)} position={vec3(3.59223, -3.3, -0.14)} rotation={new THREE.Euler(-(Math.PI / 2), 0, 0)} greyOffset={-0.1} />
 
-      <WallPaper map={paper} position={vec3(-11, 3.33, -5.52)} scale={vec3(0.005, 0.0009, 1)} UVOffset={vec2(0.2, 0.02)} renderOrder={5} />
-      <Backdrop map={ryouanji} position={vec3(-11.5, -1, -6)} scale={vec3(0.0017, 0.0017, 1)} UVScale={vec2(0.8, 0.8)} UVOffset={vec2(0.33, 0)} greyScale={true} greyRange={vec2(0.0, 0.7)} backMap={ryouanji} />
-      <mesh position={[-13, -1, -5.9]} scale={[4, 8, 1]} ref={initAki} >
-        <planeGeometry args={[1, 1 / (1280 / 720)]} />
-        <shaderMaterial args={[StdShader({ map: akiTex, UVScale: vec2(0.8, 0.8), UVOffset: vec2(0, 0), greyScale:true, BnW:true, BnWThreshold: 0.5, bokeh:true, bokehPasses: 16, bokehScale:1, psr:vec2(0.01, 0.01), useColorSelect:true, tolerance: 0.7, greyRange: vec2(0, 0.7), greyOffset: 0.2, redRange: vec2(0, 1), blueRange: vec2(0, 1), RGBOffset: vec3(-0.1, -0.1, -0.1), greenRange: vec2(0, 1), selectColor: vec3(1, 0.050980392156862744, 0.043137254901960784), useMap2:false, map2:glassTex, map2Scale:0.05, map2UVScale: vec2(0.1,0.1) })]} />
-      </mesh>
+        <WallPaper map={paper} position={vec3(-11, 3.33, -5.52)} scale={vec3(0.005, 0.0009, 1)} UVOffset={vec2(0.2, 0.02)} renderOrder={5} />
+        <Backdrop map={ryouanji} position={vec3(-11.5, -1, -6)} scale={vec3(0.0017, 0.0017, 1)} UVScale={vec2(0.8, 0.8)} UVOffset={vec2(0.33, 0)} greyScale={true} greyRange={vec2(0.0, 0.7)} backMap={ryouanji} />
+        <AkiScene position={vec3(-13, -1, -5.9)} scale={vec3(4, 8, 1)} />
+        
+        <Brace scale={vec3(0.01, 0.00075, 1)} position={vec3(-11, 1.775, -5.4999)} rotation={new THREE.Euler(0, 0, 0)} greyScale={true} greyOffset={-0.075} />
+        <WallPaper map={plaster} position={vec3(-0.2, -0.9, -6.7)} scale={vec3(0.004125, 0.003, 1)} rotation={new THREE.Euler(0, Math.PI / 2, 0)} UVOffset={vec2(0.2, 0.01)} renderOrder={5} />
 
-      <Brace scale={vec3(0.01, 0.00075, 1)} position={vec3(-11, 1.775, -5.4999)} rotation={new THREE.Euler(0, 0, 0)} greyScale={true} greyOffset={-0.075} />
-      <WallPaper map={plaster} position={vec3(-0.2, -0.9, -6.7)} scale={vec3(0.004125, 0.003, 1)} rotation={new THREE.Euler(0, Math.PI / 2, 0)} UVOffset={vec2(0.2, 0.01)} renderOrder={5} />
+        <Shoji position={vec3(-2.75, 1.025, -2.80001)} scale={vec3(1.05, 1.005, 1)} />
+        <Shoji position={vec3(-4.5, 1.025, -2.80001)} scale={vec3(1.02, 1.005, 1)} />
+        <Shoji position={vec3(-6.4, 1.025, -2.80001)} scale={vec3(1.02, 1.005, 1)} ref={initLeftShoji} />
+        <WallPaper map={plaster} position={vec3(-18.28, -0.9, -6.7)} scale={vec3(0.004125, 0.003, 1)} rotation={new THREE.Euler(0, Math.PI / 2, 0)} UVOffset={vec2(0.2, 0.01)} renderOrder={5} />
+        <Post scale={vec3(0.00275, 0.000071, 1)} position={vec3(-11, -1.02, -5.5)} rotation={new THREE.Euler(0, -(Math.PI / 2), -(Math.PI / 2))} greyOffset={-0.2} renderOrder={35} />
+        <Post scale={vec3(0.00355, 0.0005, 1)} position={vec3(-14.63, -1.125, -5.49999)} rotation={new THREE.Euler(0, 0, -(Math.PI / 2))} greyOffset={0} renderOrder={35} />
+        <WallPaper map={plaster} scale={vec3(0.00115, -0.00176, 1)} position={vec3(-16.5, -1.14, -5.52)} UVOffset={vec2(0.2, 0.01)} greyScale={true} greyOffset={-0.4} />
 
-      <Shoji position={vec3(-2.75, 1.025, -2.80001)} scale={vec3(1.05, 1.005, 1)} />
-      <Shoji position={vec3(-4.5, 1.025, -2.80001)} scale={vec3(1.02, 1.005, 1)} />
-      <Shoji position={vec3(-6.4, 1.025, -2.80001)} scale={vec3(1.02, 1.005, 1)} ref={initLeftShoji} />
-      <WallPaper map={plaster} position={vec3(-18.28, -0.9, -6.7)} scale={vec3(0.004125, 0.003, 1)} rotation={new THREE.Euler(0, Math.PI / 2, 0)} UVOffset={vec2(0.2, 0.01)} renderOrder={5} />
-      <Post scale={vec3(0.00275, 0.000071, 1)} position={vec3(-11, -1.02, -5.5)} rotation={new THREE.Euler(0, -(Math.PI / 2), -(Math.PI / 2))} greyOffset={-0.2} renderOrder={35} />
-      <Post scale={vec3(0.00355, 0.0005, 1)} position={vec3(-14.63, -1.125, -5.49999)} rotation={new THREE.Euler(0, 0, -(Math.PI / 2))} greyOffset={0} renderOrder={35} />
-      <WallPaper map={plaster} scale={vec3(0.00115, -0.00176, 1)} position={vec3(-16.5, -1.14, -5.52)} UVOffset={vec2(0.2, 0.01)} greyScale={true} greyOffset={-0.4} />
+        <Osaranma position={vec3(-3.65, 1.4375, -0.3)} />
 
-      <Osaranma position={vec3(-3.65, 1.4375, -0.3)} />
+        <Brace scale={vec3(0.0021, -0.0019, 0.0001)} position={vec3(-1.925, -3.655, -3.85)} UVScale={vec2(0.5, 0.5)} />
+        <Post scale={vec3(0.005, 0.0012, .0001)} position={vec3(-3.459, -0.2, -3.85)} />
+        <WallPaper scale={vec3(0.002, 0.006575, 1)} position={vec3(-1.8, 0.58, -3.851)} UVScale={vec2(1, 1)} UVOffset={vec2(0.2, 0.01)} useMap2={true} map2UVScale={vec2(1, 1)} map2Scale={0.05} />
+        <Mat position={vec3(-0.6575, -3.36, -2.68)} scale={vec3(0.001, 0.00076, 0.01)} sizeX={3} sizeY={0} trimColorOffset={0.15} />
+        <Brace scale={vec3(0.0020775, 0.000375, 1)} position={vec3(-1.88, -0.09, -1.651)} rotation={new THREE.Euler(0, 0, 0)} greyScale={true} greyOffset={-0.075} />
+        <WallPaper map={plaster} scale={vec3(0.00105125, 0.00095, 1)} position={vec3(-1.9, 1.4, -1.652)} UVScale={vec2(1, 1)} UVOffset={vec2(0.2, 0.01)} useMap2={false} map2UVScale={vec2(1, 1)} map2Scale={0.05} />
+        <Brace scale={vec3(0.00215, -0.0019, 0.0001)} position={vec3(-1.925, -3.655, -1.65)} UVScale={vec2(0.5, 0.5)} />
 
-      <Brace scale={vec3(0.0021, -0.0019, 0.0001)} position={vec3(-1.925, -3.655, -3.85)} UVScale={vec2(0.5, 0.5)} />
-      <Post scale={vec3(0.005, 0.0012, .0001)} position={vec3(-3.459, -0.2, -3.85)} />
-      <WallPaper scale={vec3(0.002, 0.006575, 1)} position={vec3(-1.8, 0.58, -3.851)} UVScale={vec2(1, 1)} UVOffset={vec2(0.2, 0.01)} useMap2={true} map2UVScale={vec2(1, 1)} map2Scale={0.05} />
-      <Mat position={vec3(-0.6575, -3.36, -2.68)} scale={vec3(0.001, 0.00076, 0.01)} sizeX={3} sizeY={0} trimColorOffset={0.15} />
-      <Brace scale={vec3(0.0020775, 0.000375, 1)} position={vec3(-1.88, -0.09, -1.651)} rotation={new THREE.Euler(0, 0, 0)} greyScale={true} greyOffset={-0.075} />
-      <WallPaper map={plaster} scale={vec3(0.00105125, 0.00095, 1)} position={vec3(-1.9, 1.4, -1.652)} UVScale={vec2(1, 1)} UVOffset={vec2(0.2, 0.01)} useMap2={false} map2UVScale={vec2(1, 1)} map2Scale={0.05} />
-      <Brace scale={vec3(0.00215, -0.0019, 0.0001)} position={vec3(-1.925, -3.655, -1.65)} UVScale={vec2(0.5, 0.5)} />
+        <Mat position={vec3(-0.566, -3.95, -0.78)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} />
+        <Mat position={vec3(-4.1125, -3.95, -0.78)} scale={vec3(0.000925, 0.000925, 0.01)} />
+        <Mat position={vec3(-7.659, -3.95, -0.78)} scale={vec3(0.000925, 0.000925, 0.01)} />
+        <Mat position={vec3(-11.2055, -3.95, -0.78)} scale={vec3(0.000925, 0.000925, 0.01)} />
+        <Mat position={vec3(-14.752, -3.95, -0.78)} scale={vec3(0.000925, 0.000925, 0.01)} />
 
-      <Mat position={vec3(-0.566, -3.95, -0.78)} scale={vec3(0.000925, 0.000925, 0.01)} rotation={vec3(-90, 0, -90)} />
-      <Mat position={vec3(-4.1125, -3.95, -0.78)} scale={vec3(0.000925, 0.000925, 0.01)} />
-      <Mat position={vec3(-7.659, -3.95, -0.78)} scale={vec3(0.000925, 0.000925, 0.01)} />
-      <Mat position={vec3(-11.2055, -3.95, -0.78)} scale={vec3(0.000925, 0.000925, 0.01)} />
-      <Mat position={vec3(-14.752, -3.95, -0.78)} scale={vec3(0.000925, 0.000925, 0.01)} />
-
-      <Post scale={vec3(0.005, 0.0012, .0001)} position={vec3(-3.725, -0.675, -1.65)} />
-      <Post scale={vec3(0.00595, 0.0017, 1)} position={vec3(-11.075, 0.15, -5.55)} />
-      <Post scale={vec3(0.00595, 0.0015, 1)} position={vec3(-10.975, 0.27, -5.8)} rotation={new THREE.Euler(0, Math.PI / 2, (Math.PI / 2))} greyScale={true} greyOffset={-0.075} />
-      <Brace scale={vec3(0.009, 0.0008, 1)} position={vec3(-7.4, -3.95, -5.625)} rotation={new THREE.Euler(-(Math.PI / 2), 0, 0)} greyScale={true} greyOffset={-0.075} />
-    </group>
-  );
+        <Post scale={vec3(0.005, 0.0012, .0001)} position={vec3(-3.725, -0.675, -1.65)} />
+        <Post scale={vec3(0.00595, 0.0017, 1)} position={vec3(-11.075, 0.15, -5.55)} />
+        <Post scale={vec3(0.00595, 0.0015, 1)} position={vec3(-10.975, 0.27, -5.8)} rotation={new THREE.Euler(0, Math.PI / 2, (Math.PI / 2))} greyScale={true} greyOffset={-0.075} />
+        <Brace scale={vec3(0.009, 0.0008, 1)} position={vec3(-7.4, -3.95, -5.625)} rotation={new THREE.Euler(-(Math.PI / 2), 0, 0)} greyScale={true} greyOffset={-0.075} />
+      </group>
+    </>);
 };
 
 export default GLInterior;
