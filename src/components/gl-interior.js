@@ -32,7 +32,7 @@ import nanum from '../assets/fonts/Nanum Pen_Regular.json'
 import estonia from '../assets/fonts/Estonia_Regular.json';
 
 extend({ TextGeometry });
-extend({ TextTex });
+
 const ANIMATIONS = true;
 
 const vec2 = (n1 = null, n2 = null) => new THREE.Vector2(n1, n2);
