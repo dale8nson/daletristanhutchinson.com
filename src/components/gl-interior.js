@@ -294,7 +294,6 @@ const Mat = ({ position, scale = vec3(1, 1, 1), rotation = vec3(-90, 0, 90), siz
                   </mesh>
                   {sizeX >= 3 && (
                     <>
-
                       <mesh rotation={eulerAngles} scale={[scale.x, scale.y, scale.z]} position={[localPosition.x - texWidth * 3, localPosition.y, localPosition.z - texHeight]} >
                         <planeGeometry args={[tatamiTex.image.width * dpr, tatamiTex.image.height * dpr]} />
                         <shaderMaterial args={[Shader({ map: tatamiTex, UVScale: vec2(1, 1 / (scale.x / scale.y)), greyScale: true, greyOffset: -0.1 + greyOffset, greyRange: vec2(0.5, 0.6) })]} />

@@ -11,11 +11,11 @@ const vec4 = (n1, n2, n3, n4) => new THREE.Vector4(n1, n2, n3, n4);
 
 
 const TextTex = ({ children, map = null, font, size = 1, height = 1, color = 0xffffff, position = vec3(0, 0, 0), scale = vec3(1, 1, 1), rotation = new THREE.Euler(0, 0, 0) }) => {
-  extend({ TextGeometry });
+  extend({ TextGeometry })
 
   return (
     <mesh position={[position.x, position.y, position.z]} scale={[scale.x, scale.y, scale.z]}>
-      <textGeometry args={[children, { font: font, size: size, height: height }]} />
+      <textGeometry args={[children, { font: font, size: size, height: height }]}/>
       {/* <shaderMaterial args={[StdShader({map:map, UVScale:vec2(1,1 / (scale.x / scale.y)), greyScale:true})]} wireframe={false} /> */}
       <meshBasicMaterial  color={color} wireframe={false} />
     </mesh>
